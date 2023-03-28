@@ -182,8 +182,6 @@ public class PersonalChatGPTUnit implements PersonUnitConfiguration {
                                             Use the help command to find out about the possibilities 🚀
                                             -- -- -- -- --
                                             🤘 Version: {0}
-                                            👨‍💻 Developer: [Struchkov Mark](https://mark.struchkov.dev/)
-                                            💊 Docs: https://docs.struchkov.dev/chatgpt-telegram-bot
                                             """,
                                     appProperty.getVersion()
                             ))
@@ -240,50 +238,6 @@ public class PersonalChatGPTUnit implements PersonUnitConfiguration {
                             }
                             return BoxAnswer.builder().build();
                         }
-                )
-                .build();
-    }
-
-    @Unit(value = UnitName.SUPPORT, global = true)
-    public AnswerText<Mail> support() {
-        return AnswerText.<Mail>builder()
-                .triggerCheck(
-                        mail -> {
-                            final List<Attachment> attachments = mail.getAttachments();
-                            final Optional<CommandAttachment> optCommand = Attachments.findFirstCommand(attachments);
-                            if (optCommand.isPresent()) {
-                                return Cmd.SUPPORT_DEV.equals(optCommand.get().getCommandType());
-                            }
-
-                            final Optional<ButtonClickAttachment> optClick = Attachments.findFirstButtonClick(attachments);
-                            if (optClick.isPresent()) {
-                                return Cmd.SUPPORT_DEV.equals(optClick.get().getRawCallBackData());
-                            }
-                            return false;
-                        }
-                )
-                .answer(
-                        () -> BoxAnswer.builder()
-                                .message("""
-                                        ❤️ *Support Develop*
-                                                                        
-                                        Sponsorship makes a project sustainable because it pays for the time of the maintainers of that project, a very scarce resource that is spent on developing new features, fixing bugs, improving stability, solving problems, and general support. *The biggest bottleneck in Open Source is time.*
-                                                           
-                                        Bank card (Russia): [https://www.tinkoff.ru/cf/4iU6NB3uzqx](https://www.tinkoff.ru/cf/4iU6NB3uzqx)
-                                                                        
-                                        TON: `struchkov-mark.ton`
-                                                                        
-                                        BTC:
-                                        `bc1pt49vnp43c4mktk6309zlq3020dzd0p89gc8d90zzn4sgjvck56xs0t86vy`
-                                                                        
-                                        ETH (USDT, DAI, USDC):
-                                        `0x7668C802Bd71Be965671D4Bbb1AD90C7f7f32921`
-                                                                        
-                                        BNB (USDT, DAI, USDC):
-                                        `0xDa41aC95f606850f2E01ba775e521Cd385AA7D03`
-                                        """)
-                                .payload(ENABLE_MARKDOWN)
-                                .build()
                 )
                 .build();
     }

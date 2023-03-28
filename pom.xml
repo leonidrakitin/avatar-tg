@@ -10,13 +10,13 @@
 
     <groupId>dev.struchkov.openai</groupId>
     <artifactId>openai-chatgpt-telegram-bot</artifactId>
-    <version>0.0.2-SNAPSHOT</version>
+    <version>0.1.0</version>
 
     <properties>
         <java.version>17</java.version>
 
-        <openai.api.version>0.0.2-SNAPSHOT</openai.api.version>
-        <godfather.version>0.0.54-SNAPSHOT</godfather.version>
+        <openai.api.version>0.0.2</openai.api.version>
+        <godfather.version>0.0.54</godfather.version>
 
         <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-compiler-plugin -->
         <plugin.maven.compiler.ver>3.10.1</plugin.maven.compiler.ver>
@@ -164,15 +164,14 @@
         <connection>scm:git:ssh://git@git.struchkov.dev:222/Telegram-Bots/openai-chatgpt-telegram-bot.git</connection>
         <url>https://git.struchkov.dev/Telegram-Bots/openai-chatgpt-telegram-bot</url>
         <developerConnection>scm:git:ssh://git@git.struchkov.dev:222/Telegram-Bots/openai-chatgpt-telegram-bot.git</developerConnection>
-      <tag>HEAD</tag>
+      <tag>v.0.1.0</tag>
   </scm>
 
     <developers>
         <developer>
-            <id>uPagge</id>
-            <name>Struchkov Mark</name>
-            <email>mark@struchkov.dev</email>
-            <url>https://mark.struchkov.dev</url>
+            <id>1</id>
+            <name>Leonid Rakitin</name>
+            <email>l.p.rakitin@gmail.com</email>
         </developer>
     </developers>
 

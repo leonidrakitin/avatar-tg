@@ -40,13 +40,11 @@ public class StartNotify {
                     .message(MessageFormat.format(
                             """
                                     Hello 👋
-                                    Your personal ChatGPT bot has been successfully launched.
+                                    Your personal assistant bot has been successfully launched.
                                                             
                                     Use the help command to find out about the possibilities 🚀
                                     -- -- -- -- --
                                     🤘 Version: {0}
-                                    👨‍💻 Developer: [Struchkov Mark](https://mark.struchkov.dev/)
-                                    💊 Docs: https://docs.struchkov.dev/chatgpt-telegram-bot
                                     """,
                             appProperty.getVersion()
                     ))
