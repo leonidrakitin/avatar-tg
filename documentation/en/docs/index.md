@@ -118,7 +118,7 @@ Enough words, let's launch your personal ChatGPT Telegram bot. 🚀
 * `TELEGRAM_BOT_USERNAME` - Specify a name with the ending bot here, not a public name. Example: Undusted_bot
 * `TELEGRAM_PERSON_ID` - The IDs of the users on Telegram who are allowed access. Example: 1234567, 56789045
 * `ADMIN_TELEGRAM_PERSON_ID` - The IDs of the users on Telegram who are allowed admin access. Example: 1234567
-* `CHAT_GPT_TOKEN` - OpenAI API access token.
+* `OPENAI_API_KEY` - OpenAI API access token.
 
 ### Docker Run
 
@@ -132,7 +132,7 @@ docker run -it --name chatgpt-telegram-bot \
     --env TELEGRAM_BOT_USERNAME= \
     --env TELEGRAM_PERSON_ID= \
     --env ADMIN_TELEGRAM_PERSON_ID= \
-    --env CHAT_GPT_TOKEN= \
+    --env OPENAI_API_KEY= \
     upagge/chatgpt-telegram-bot:develop
 ```
 
@@ -149,7 +149,7 @@ docker run -it --name chatgpt-telegram-bot \
     --env TELEGRAM_BOT_USERNAME= \
     --env TELEGRAM_PERSON_ID= \
     --env ADMIN_TELEGRAM_PERSON_ID= \
-    --env CHAT_GPT_TOKEN= \
+    --env OPENAI_API_KEY= \
     --env TELEGRAM_PROXY_ENABLE=true \
     --env TELEGRAM_PROXY_HOST= \
     --env TELEGRAM_PROXY_PORT= \
@@ -185,7 +185,7 @@ docker run -it --name chatgpt-telegram-bot \
           TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME}
           TELEGRAM_PERSON_ID: ${TELEGRAM_PERSON_ID}
           ADMIN_TELEGRAM_PERSON_ID: ${ADMIN_TELEGRAM_PERSON_ID}
-          CHAT_GPT_TOKEN: ${CHAT_GPT_TOKEN}
+          OPENAI_API_KEY: ${OPENAI_API_KEY}
     ```
 
 === ":material-variable: .env"
@@ -195,7 +195,7 @@ docker run -it --name chatgpt-telegram-bot \
     TELEGRAM_BOT_USERNAME=
     TELEGRAM_PERSON_ID=
     ADMIN_TELEGRAM_PERSON_ID=
-    CHAT_GPT_TOKEN=
+    OPENAI_API_KEY=
     ```
 
 ## :heart:{ .heart } Support Develop

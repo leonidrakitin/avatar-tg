@@ -1,13 +1,12 @@
 app:
   admin-telegram-ids: ${ADMIN_TELEGRAM_PERSON_ID}
-  telegram-ids: ${TELEGRAM_PERSON_ID}
+  telegram-id: ${TELEGRAM_PERSON_ID}
   version: 0.1.0
+  username: ${TELEGRAM_BOT_USERNAME}
+  token: ${TELEGRAM_BOT_TOKEN}
+  autoresponder:
+    threads: ${AUTORESPONDER_THREADS:8}
 telegram:
-  bot:
-    username: ${TELEGRAM_BOT_USERNAME}
-    token: ${TELEGRAM_BOT_TOKEN}
-    autoresponder:
-      threads: ${AUTORESPONDER_THREADS:8}
   proxy:
     enable: ${TELEGRAM_PROXY_ENABLE:false}
     host: ${TELEGRAM_PROXY_HOST:}
@@ -16,4 +15,38 @@ telegram:
     user: ${TELEGRAM_PROXY_USERNAME:}
     password: ${TELEGRAM_PROXY_PASSWORD:}
 openai:
-  token: ${CHAT_GPT_TOKEN}
+  token: ${OPENAI_API_KEY}
+server:
+#  address: 192.168.0.15
+  #  address: 192.168.0.6
+  port: 8080
+  servlet:
+    #    context-path: /api/v1
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+spring:
+  profiles:
+    active: dev
+  datasource:
+    url: ${SQL_URL:jdbc:postgresql://localhost:5454/avatar}
+    username: ${SQL_USERNAME:root}
+    password: ${SQL_PASSWORD:123456}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database: postgresql
+    show-sql: true
+    hibernate:
+      ddl-auto: validate
+#      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        id:
+          new_generator_mappings: false
+          optimizer: none
+  liquibase:
+    enabled: false
+    change-log: classpath:/liquibase/db.changelog-master.yaml

@@ -1,0 +1,34 @@
+version: "3.9"
+
+services:
+  avatar-db:
+    image: postgres:14
+    container_name: avatar-db
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=123456
+      - POSTGRES_DB=avatar
+    ports:
+      - "5454:5432"
+    networks:
+      - avatar-network
+
+  avatar-middle-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kds-app
+    environment:
+      - SQL_URL=jdbc:postgresql://avatar-db:5454/avatar
+      - SQL_USERNAME=root
+      - SQL_PASSWORD=123456
+    ports:
+      - "8000:8000"
+    depends_on:
+      - avatar-db
+    networks:
+      - avatar-network
+
+networks:
+  avatar-network:
+    name: avatar-network
