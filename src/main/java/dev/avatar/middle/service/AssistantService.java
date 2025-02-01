@@ -39,6 +39,7 @@ public class AssistantService {
     private final AssistantApi assistantApi;
     private final FileApi fileApi;
     private final AudioApi audioApi;
+    private final HeyGenService heyGenService;
 
     private final ConcurrentHashMap<String, Long> runsQueue = new ConcurrentHashMap<>();
     private final Cache<String, Data.Assistant> assistantCache = CacheBuilder.newBuilder()
@@ -120,7 +121,7 @@ public class AssistantService {
         return this.assistantRepository.findByTelegramBotId(botId)
                 .map(AssistantEntity::getAssistantId)
                 .map(this.assistantApi::retrieveAssistant)
-//                .orElse(createAssistant(botId));
+//                .orElse(createAssistant(botId)); // todo delete if needed to create new bot only
                 .orElseThrow();
     }
 

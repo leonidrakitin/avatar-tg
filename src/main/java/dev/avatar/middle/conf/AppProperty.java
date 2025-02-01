@@ -18,5 +18,5 @@ public class AppProperty {
     private String version;
     private String token;
     private String username;
-
+    private String heyGenApiKey;
 }

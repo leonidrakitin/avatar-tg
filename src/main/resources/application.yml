@@ -4,6 +4,7 @@ app:
   version: 0.1.0
   username: ${TELEGRAM_BOT_USERNAME}
   token: ${TELEGRAM_BOT_TOKEN}
+  hey-gen-api-key: ${HEYGEN_API_KEY}
   autoresponder:
     threads: ${AUTORESPONDER_THREADS:8}
 telegram:
@@ -38,8 +39,8 @@ spring:
     database: postgresql
     show-sql: true
     hibernate:
-      ddl-auto: validate
-#      ddl-auto: create-drop
+      #ddl-auto: validate
+      #ddl-auto: create
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
