@@ -16,13 +16,12 @@ import com.pengrad.telegrambot.request.GetFile;
 import com.pengrad.telegrambot.request.SendChatAction;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.request.SendPhoto;
-import com.pengrad.telegrambot.request.SendVideo;
 import com.pengrad.telegrambot.request.SendVideoNote;
 import com.pengrad.telegrambot.request.SetMyCommands;
 import com.pengrad.telegrambot.response.GetFileResponse;
 import com.pengrad.telegrambot.response.SendResponse;
 import dev.avatar.middle.conf.AppProperty;
-import dev.avatar.middle.unit.enums.ResponseType;
+import dev.avatar.middle.model.ResponseType;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -79,30 +78,10 @@ public class TelegramBotService {
                     }
                     if (update.message() != null) {
                         try {
-                            if (update.message().text() != null && update.message().text().contains("/start")) {
-                                bot.execute(new SetMyCommands(
-                                        new BotCommand("/type", "\uD83D\uDDE3 Change communication type"),
-                                        new BotCommand("/myprofile", "\uD83D\uDC64 Check my profile"),
-                                        new BotCommand("/summarize", "☝\uFE0F Summarize last meeting"),
-                                        new BotCommand("/language", "\uD83D\uDCAC Change language")
-                                ));
-
-                                // Создаем клавиатуру с тремя кнопками
-                                InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup(
-                                        new InlineKeyboardButton("TEXT").callbackData(ResponseType.TEXT.toString()),
-                                        new InlineKeyboardButton("VIDEO").callbackData(ResponseType.VIDEO.toString()));
-
-                                // Отправляем приветственное сообщение с кнопками
-                                bot.execute(
-                                        new SendMessage(update.message().chat().id(), "Hi! Pick a format for my answers. I can reply to you in text, voice messages, and Circle Video format. You can always change this by pressing the \"menu\" button.")
-                                        .replyMarkup(keyboard));
-                            }
-                            else {
-                                this.processMessage(bot, update);
-                            }
+                            this.processMessage(bot, update);
                         }
                         catch (Exception e) {
-                            System.out.println("Error " + e.toString());
+                            System.out.println("Error " + e);
                         }
                     }
                 }
@@ -121,19 +100,52 @@ public class TelegramBotService {
         }
     }
 
+    private SetMyCommands getHelpCommands() {
+        return new SetMyCommands(
+                new BotCommand("/type", "\uD83D\uDDE3 Change communication type"),
+                new BotCommand("/myprofile", "\uD83D\uDC64 Check my profile"),
+                new BotCommand("/summarize", "☝\uFE0F Summarize last meeting"),
+                new BotCommand("/language", "\uD83D\uDCAC Change language")
+        );
+    }
+
     @Async
     protected void processMessage(TelegramBot bot, Update update) {
         long chatId = update.message().chat().id();
         long telegramUserId = update.message().from().id();
+        int messageId = update.message().messageId();
+        String text = update.message().text();
 
         if (queueTelegramIdWithChatData.containsKey(telegramUserId)) {
             bot.execute(new SendMessage(chatId, "⌛️ Please ask me later when I finish processing your previous message!"));
             return;
         }
 
+        if (!text.isBlank() && text.contains("/start")) {
+
+            // Создаем клавиатуру с тремя кнопками
+            InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup(
+                    new InlineKeyboardButton("TEXT").callbackData(ResponseType.TEXT.toString()),
+                    new InlineKeyboardButton("VIDEO").callbackData(ResponseType.VIDEO.toString()));
+
+            bot.execute(this.getHelpCommands());
+            // Отправляем приветственное сообщение с кнопками
+            SendMessage message = new SendMessage(
+                    telegramUserId,
+                    """
+                            Hi! Pick a format for my answers. I can reply to you in text, 
+                            voice messages, and Circle Video format. You can always change 
+                            this by pressing the \"menu\" button.
+                        """
+            ).replyMarkup(keyboard);
+            bot.execute(message);
+            return;
+        }
+
+        ResponseType responseType = userWithResponseType.getOrDefault(telegramUserId, ResponseType.TEXT);
         ChatData existingData = queueTelegramIdWithChatData.getOrDefault(
                 telegramUserId,
-                new ChatData(chatId, update.message().messageId(), bot, null, userWithResponseType.getOrDefault(telegramUserId, ResponseType.TEXT)) // TEXT по умолчанию
+                new ChatData(chatId, messageId, bot, null, responseType)
         );
 
         queueTelegramIdWithChatData.put(telegramUserId, existingData);
@@ -150,7 +162,7 @@ public class TelegramBotService {
             if (update.message().voice() != null) {
                 processVoiceMessage(
                         bot,
-                        update.message().messageId(),
+                        messageId,
                         update.message().voice().fileId(),
                         telegramUserId,
                         chatId,
@@ -159,7 +171,7 @@ public class TelegramBotService {
             }
             else if (update.message().videoNote() != null) {
                 processVoiceMessage(bot,
-                        update.message().messageId(),
+                        messageId,
                         update.message().videoNote().fileId(),
                         telegramUserId,
                         chatId,
@@ -169,7 +181,7 @@ public class TelegramBotService {
             else if (update.message().text() != null) {
                 sendRequest(
                         bot,
-                        update.message().messageId(),
+                        messageId,
                         update.message().text(),
                         telegramUserId,
                         chatId,
@@ -179,7 +191,7 @@ public class TelegramBotService {
         }
         catch (Exception e) {
             log.error("Error processing message for user {}: {}", telegramUserId, e.getMessage());
-            bot.execute(new SendMessage(chatId, "❌ An error occurred while processing your request."));
+//            bot.execute(new SendMessage(chatId, "❌ An error occurred while processing your request."));
         }
         finally {
             // Удаляем пользователя из очереди после обработки
@@ -385,7 +397,8 @@ public class TelegramBotService {
                     chatId,
                     existingData != null ? existingData.askMessageId() : callback.message().messageId(), // todo optional.ofNullable().orElseGet();
                     bot,
-                    existingData != null ? existingData.targetMessageId() : null // ????
+                    existingData != null ? existingData.targetMessageId() : null, //todo same ????,
+                    responseType
             );
             queueTelegramIdWithChatData.put(userId, newChatData);
 
@@ -404,7 +417,6 @@ public class TelegramBotService {
             log.error("Error handling callback", e);
         }
     }
-
 
     public record ChatData(
             long chatId,

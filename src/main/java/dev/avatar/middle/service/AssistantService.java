@@ -39,7 +39,6 @@ public class AssistantService {
     private final AssistantApi assistantApi;
     private final FileApi fileApi;
     private final AudioApi audioApi;
-    private final HeyGenService heyGenService;
 
     private final ConcurrentHashMap<String, Long> runsQueue = new ConcurrentHashMap<>();
     private final Cache<String, Data.Assistant> assistantCache = CacheBuilder.newBuilder()

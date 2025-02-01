@@ -1,4 +1,4 @@
-package dev.avatar.middle.unit.enums;
+package dev.avatar.middle.model;
 
 public enum ResponseType {
     TEXT,
