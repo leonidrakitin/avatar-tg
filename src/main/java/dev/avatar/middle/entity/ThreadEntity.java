@@ -2,10 +2,6 @@ package dev.avatar.middle.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -28,16 +24,16 @@ public class ThreadEntity {
     @Id
     private final String threadId;
 
-    private final Long telegramUserId;
+    private final Long telegramChatId;
 
     private final LocalDate creationDate;
 
     private final LocalDate deprecatedAt;
 
-    public static ThreadEntity of(String threadId, Long telegramUserId) {
+    public static ThreadEntity of(String threadId, Long telegramChatId) {
         return ThreadEntity.builder()
                 .threadId(threadId)
-                .telegramUserId(telegramUserId)
+                .telegramChatId(telegramChatId)
                 .build();
     }
 }

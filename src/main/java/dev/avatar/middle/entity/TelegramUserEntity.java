@@ -1,7 +1,10 @@
 package dev.avatar.middle.entity;
 
 import com.pengrad.telegrambot.model.User;
+import dev.avatar.middle.model.ResponseType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -32,6 +35,9 @@ public class TelegramUserEntity {
     private final String defaultLocale;
 
     private final String selectedLocale;
+
+    @Enumerated(EnumType.STRING)
+    private final ResponseType responseType;
 
     public static TelegramUserEntity of(User user) {
         return TelegramUserEntity.builder()

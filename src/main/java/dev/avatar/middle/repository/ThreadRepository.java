@@ -10,7 +10,7 @@ public interface ThreadRepository extends JpaRepository<ThreadEntity, String> {
 
     @Query("""
         select t from ThreadEntity t
-        where t.telegramUserId = :telegramUserId and t.deprecatedAt is null
+        where t.telegramChatId = :telegramChatId and t.deprecatedAt is null
     """)
-    Optional<ThreadEntity> findByTelegramUserId(Long telegramUserId);
+    Optional<ThreadEntity> findByTelegramChatId(Long telegramChatId);
 }

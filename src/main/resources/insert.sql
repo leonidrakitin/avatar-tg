@@ -1,0 +1,1 @@
+INSERT INTO public.assistant (assistant_id, telegram_bot_id) VALUES ('asst_CaL75qVP9Hfr5uC49QmYp3fv', '7632291047:AAEJwuFxt4En9jkyX_Zv3o9nsATAacYydOc');

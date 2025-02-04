@@ -5,6 +5,7 @@ import com.google.common.cache.CacheBuilder;
 import com.logaritex.ai.api.AssistantApi;
 import com.logaritex.ai.api.Data;
 import dev.avatar.middle.entity.TelegramUserEntity;
+import dev.avatar.middle.model.ResponseType;
 import dev.avatar.middle.repository.AssistantRepository;
 import dev.avatar.middle.repository.TelegramUserRepository;
 import dev.avatar.middle.repository.ThreadRepository;
@@ -31,6 +32,16 @@ public class TelegramUserService {
 
     public Optional<TelegramUserEntity> getUser(Long telegramUserId) {
         return this.telegramUserRepository.findById(telegramUserId);
+    }
+
+    public ResponseType getUserResponseType(Long telegramUserId) {
+        return getUser(telegramUserId)
+                .map(TelegramUserEntity::getResponseType)
+                .orElse(ResponseType.TEXT);
+    }
+
+    public void updateUserResponseType(Long telegramUserId, ResponseType responseType) {
+        this.telegramUserRepository.updateResponseType(telegramUserId, responseType);
     }
 
     // todo getOrCreate

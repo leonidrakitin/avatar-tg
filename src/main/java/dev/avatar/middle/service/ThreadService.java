@@ -25,20 +25,20 @@ public class ThreadService {
             .expireAfterWrite(60, TimeUnit.MINUTES)
             .build();
 
-    public Data.Thread getThreadByTelegramUserId(Long telegramUserId) throws ExecutionException {
-        return this.threadCache.get(telegramUserId, () -> this.loadThread(telegramUserId));
+    public Data.Thread getThreadByTelegramChatId(Long telegramChatId) throws ExecutionException {
+        return this.threadCache.get(telegramChatId, () -> this.loadThread(telegramChatId));
     }
 
-    private Data.Thread loadThread(Long telegramUserId) {
-        return this.threadRepository.findByTelegramUserId(telegramUserId)
+    private Data.Thread loadThread(Long telegramChatId) {
+        return this.threadRepository.findByTelegramChatId(telegramChatId)
                 .map(ThreadEntity::getThreadId)
                 .map(this.assistantApi::retrieveThread)
-                .orElseGet(() -> this.createThread(telegramUserId));
+                .orElseGet(() -> this.createThread(telegramChatId));
     }
 
-    private Data.Thread createThread(Long telegramUserId) {
+    private Data.Thread createThread(Long telegramChatId) {
         Data.Thread thread = this.assistantApi.createThread(new Data.ThreadRequest());
-        this.threadRepository.save(ThreadEntity.of(thread.id(), telegramUserId));
+        this.threadRepository.save(ThreadEntity.of(thread.id(), telegramChatId));
         return thread;
     }
 }

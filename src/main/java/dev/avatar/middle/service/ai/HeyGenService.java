@@ -1,11 +1,9 @@
-package dev.avatar.middle.service;
+package dev.avatar.middle.service.ai;
 
 import dev.avatar.middle.conf.AppProperty;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
 import java.util.Optional;
 
@@ -16,6 +14,7 @@ public class HeyGenService {
     private final WebClient webClient;
     private final AppProperty appProperty;
 
+    //todo split on heygen client and heygen service
     public HeyGenService(WebClient.Builder webClientBuilder, AppProperty appProperty) {
         this.webClient = webClientBuilder
                 .baseUrl("https://api.heygen.com")

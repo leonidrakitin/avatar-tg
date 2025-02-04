@@ -1,4 +1,4 @@
-package dev.avatar.middle.service;
+package dev.avatar.middle.service.ai;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -6,12 +6,6 @@ import com.logaritex.ai.api.AssistantApi;
 import com.logaritex.ai.api.AudioApi;
 import com.logaritex.ai.api.Data;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -23,9 +17,9 @@ import java.util.concurrent.TimeUnit;
 import com.logaritex.ai.api.FileApi;
 import dev.avatar.middle.entity.AssistantEntity;
 import dev.avatar.middle.repository.AssistantRepository;
+import dev.avatar.middle.service.ThreadService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
 
@@ -40,7 +34,7 @@ public class AssistantService {
     private final FileApi fileApi;
     private final AudioApi audioApi;
 
-    private final ConcurrentHashMap<String, Long> runsQueue = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Long> runsQueueWithTgChatId = new ConcurrentHashMap<>();
     private final Cache<String, Data.Assistant> assistantCache = CacheBuilder.newBuilder()
             .expireAfterWrite(1, TimeUnit.DAYS)
             .build();
@@ -50,13 +44,13 @@ public class AssistantService {
 //    }
 
     public Optional<Data.Message> retrieveResponse(String runId) throws ExecutionException {
-        Long telegramUserId = runsQueue.get(runId);
-        Data.Thread thread = this.threadService.getThreadByTelegramUserId(telegramUserId);
+        Long tgChatId = runsQueueWithTgChatId.get(runId);
+        Data.Thread thread = this.threadService.getThreadByTelegramChatId(tgChatId);
         Data.Run runData = this.assistantApi.retrieveRun(thread.id(), runId);
         if (runData.status() != Data.Run.Status.completed) {
             return Optional.empty();
         }
-        this.runsQueue.remove(runId);
+        this.runsQueueWithTgChatId.remove(runId);
         Data.DataList<Data.Message> messages = assistantApi.listMessages(new Data.ListRequest(),
                 thread.id());
         return messages.data().stream()
@@ -68,23 +62,23 @@ public class AssistantService {
         return this.fileApi.retrieveFileContent(fileId);
     }
 
-    public void sendRequest(String botId, Long telegramUserId, String message) throws ExecutionException {
-        sendRequest(botId, telegramUserId, message, null);
+    public void sendRequest(String botId, Long tgChatId, String message) throws ExecutionException {
+        sendRequest(botId, tgChatId, message, null);
     }
 
-    public void sendRequest(String botId, Long telegramUserId, String message, List<Data.Attachment> attachments) throws ExecutionException {
+    public void sendRequest(String botId, Long tgChatId, String message, List<Data.Attachment> attachments) throws ExecutionException {
         Data.Assistant assistant = this.getAssistant(botId);
-        Data.Thread thread = this.threadService.getThreadByTelegramUserId(telegramUserId);
+        Data.Thread thread = this.threadService.getThreadByTelegramChatId(tgChatId);
         this.assistantApi.createMessage(
                 new Data.MessageRequest(Data.Role.user, Optional.ofNullable(message).orElse("")),
                 thread.id()
         );
         Data.Run run = this.assistantApi.createRun(thread.id(), new Data.RunRequest(assistant.id()));
-        this.runsQueue.put(run.id(), telegramUserId);
+        this.runsQueueWithTgChatId.put(run.id(), tgChatId);
     }
 
     public Set<Map.Entry<String, Long>> getRunIdsQueue() {
-        return this.runsQueue.entrySet();
+        return this.runsQueueWithTgChatId.entrySet();
     }
 
     public String transcriptAudio(byte[] file) {
@@ -97,11 +91,11 @@ public class AssistantService {
         }
     }
 
-    public void processDocument(String botId, Long telegramUserId, byte[] file, String content) throws ExecutionException {
+    public void processDocument(String botId, Long tgChatId, byte[] file, String content) throws ExecutionException {
         String fileId = this.uploadFile(file);
         this.sendRequest(
                 botId,
-                telegramUserId,
+                tgChatId,
                 content,
                 List.of(new Data.Attachment(fileId, List.of(new Data.Tool(Data.Tool.Type.file_search))))
         );
