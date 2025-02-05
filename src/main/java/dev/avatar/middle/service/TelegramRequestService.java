@@ -37,7 +37,7 @@ public class TelegramRequestService {
 
     //todo move all bot.execute to response service
     @Async
-    protected void processRequest(TelegramBot bot, Update update) {
+    protected void  processRequest(TelegramBot bot, Update update) {
         if (update.callbackQuery() != null) {
             handleCallbackQuery(bot, update.callbackQuery());
         } else if (update.message() != null) {

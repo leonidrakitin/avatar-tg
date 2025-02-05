@@ -86,7 +86,8 @@ public class TelegramResponseService {
 
     public void sendUploadStatus(Long telegramChatId) {
         Optional.ofNullable(this.chatDataService.getByChatId(telegramChatId))
-                .ifPresent(chatData -> chatData.getBot().execute(new SendChatAction(chatData.getBot(), ChatAction.upload_photo))
+                .ifPresent(chatData ->
+                        chatData.getBot().execute(new SendChatAction(chatData.getBot(), ChatAction.upload_photo))
                 );
     }
 

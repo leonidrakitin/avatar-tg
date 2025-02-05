@@ -9,6 +9,7 @@ public interface TelegramCommand {
 }
 
 /**
+ * TODO implement
  *         return new SetMyCommands(
  *                 new BotCommand("/type", "\uD83D\uDDE3 Change communication type"),
  *                 new BotCommand("/myprofile", "\uD83D\uDC64 Check my profile"),

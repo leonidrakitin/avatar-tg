@@ -27,7 +27,7 @@ public class StartCommand implements TelegramCommand {
     @Override
     public String getDescription() {
         return "Start bot command";
-    }
+    } //todo i18n
 
     @Override
     public String getCommand() {
