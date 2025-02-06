@@ -22,4 +22,6 @@ public class AppProperty {
     private String heyGenBaseUrl;
     private String heyGenAvatarId;
     private String heyGenVoiceId;
+    private String elevenLabsBaseUrl;
+    private String elevenLabsApiKey;
 }

@@ -8,6 +8,8 @@ app:
   hey-gen-base-url: ${HEYGEN_BASE_URL}
   hey-gen-avatar-id: ${HEYGEN_AVATAR_ID}
   hey-gen-voice-id: ${HEYGEN_VOICE_ID}
+  eleven-labs-base-url: ${ELEVENLABS_BASE_URL}
+  eleven-labs-api-key: ${ELEVENLABS_API_KEY}
   autoresponder:
     threads: ${AUTORESPONDER_THREADS:8}
 telegram:
