@@ -4,6 +4,7 @@ import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.CallbackQuery;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.model.User;
 import com.pengrad.telegrambot.model.request.ChatAction;
 import com.pengrad.telegrambot.request.SendChatAction;
 import com.pengrad.telegrambot.request.SendMessage;
@@ -49,19 +50,23 @@ public class TelegramRequestService {
     }
 
     private void handleCallbackQuery(TelegramBot bot, CallbackQuery callback) {
+        long chatId = callback.message().chat().id(); //todo message is deprecated
         try {
-            long chatId = callback.message().chat().id(); //todo message is deprecated
             long telegramUserId = callback.from().id();
 
             if (this.chatDataService.isWaitingForAnswer(chatId)) {
-                bot.execute(new SendMessage(chatId, "⌛️ Please ask me later when I finish processing your previous message!"));
+                bot.execute(new SendMessage(chatId, "⌛️ Please ask me later when I finish processing your previous message!")); //todo i18n
                 return;
             }
             log.info("Got callback for userId {}, callback {}", telegramUserId, callback);
-            this.getCallbackIfPresent(chatId).ifPresent(processor -> processor.processCallback(bot, callback));
+            this.getCallbackIfPresent(chatId).ifPresentOrElse(
+                    processor -> processor.processCallback(bot, callback),
+                    () -> bot.execute(new SendMessage(chatId, "Let's try again, I dont understand what are you actually want")) //todo i18n
+            );
         }
         catch (Exception e) {
             log.error("Error handling callback", e);
+            bot.execute(new SendMessage(chatId, "Let's try later..")); //todo i18n
         }
     }
 
@@ -78,16 +83,16 @@ public class TelegramRequestService {
 
         try {
             if (message.voice() != null) {
-                processVoiceMessage(bot, messageId, message.voice().fileId(), telegramUserId, chatId);
+                processVoiceMessage(bot, messageId, message.voice().fileId(), message.from(), chatId);
             }
             else if (message.videoNote() != null) {
-                processVoiceMessage(bot, messageId, message.videoNote().fileId(), telegramUserId, chatId);
+                processVoiceMessage(bot, messageId, message.videoNote().fileId(), message.from(), chatId);
             }
             else if (text != null) {
                 Optional<TelegramCommand> command = getCommandIfPresent(text);
                 command.ifPresentOrElse(
-                        tgCommand -> tgCommand.processCommand(bot, telegramUserId),
-                        () -> sendRequest(bot, messageId, text, telegramUserId, chatId)
+                        tgCommand -> tgCommand.processCommand(bot, chatId),
+                        () -> sendRequest(bot, messageId, text, message.from(), chatId)
                 );
             }
         }
@@ -101,13 +106,13 @@ public class TelegramRequestService {
             TelegramBot bot,
             int messageId,
             String fileId,
-            long telegramUserId,
+            User telegramUser,
             long chatId
     ) {
         byte[] fileData = this.telegramFileService.getTelegramFile(bot, fileId);
         String transcribedAudio = this.assistantService.transcriptAudio(fileData);
         log.debug("Got result from transcription audio service: {}", transcribedAudio);
-        this.sendRequest(bot, messageId, transcribedAudio, telegramUserId, chatId);
+        this.sendRequest(bot, messageId, transcribedAudio, telegramUser, chatId);
     }
 
     private void processDocument(TelegramBot bot, long telegramUserId, String fileId, String content) throws ExecutionException {
@@ -119,13 +124,13 @@ public class TelegramRequestService {
             TelegramBot bot,
             int messageId,
             String text,
-            long telegramUserId,
+            User telegramUser,
             long chatId
     ) {
         try {
-            ResponseType responseType = this.telegramUserService.getUserResponseType(telegramUserId);
+            ResponseType responseType = this.telegramUserService.createIfNotExists(telegramUser).getResponseType();
             this.chatDataService.save(new ChatData(chatId, messageId, bot, responseType));
-            this.assistantService.sendRequest(bot.getToken(), telegramUserId, text);
+            this.assistantService.sendRequest(bot.getToken(), telegramUser.id(), text);
             bot.execute(new SendChatAction(chatId, ChatAction.typing));
         }
         catch (ExecutionException e) {

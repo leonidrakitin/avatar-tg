@@ -35,14 +35,14 @@ public class StartCommand implements TelegramCommand {
     }
 
     @Override
-    public void processCommand(TelegramBot telegramBot, Long telegramUserId) {
+    public void processCommand(TelegramBot telegramBot, Long chatId) {
         List<BotCommand> botCommands = commands.stream()
                 .map(cmd -> new BotCommand(cmd.getCommand(), cmd.getDescription()))
                 .toList();
         SetMyCommands helpCommands = new SetMyCommands(botCommands.toArray(BotCommand[]::new));
         telegramBot.execute(helpCommands);
         //todo sent to assistant message "Hi, tell who are you? Respone in language_code: %s"
-        SendMessage message = new SendMessage(telegramUserId, "Hi!");
+        SendMessage message = new SendMessage(chatId, "Hi!");
         telegramBot.execute(message);
     }
 }

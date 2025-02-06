@@ -23,7 +23,7 @@ public class ChatDataService {
     public boolean isWaitingForAnswer(Long chatId) {
         return Optional.ofNullable(queueChatIdWithChatData.get(chatId))
                 .filter(chatData -> chatData.getCurrentUserMessageId() != null)
-                .isEmpty();
+                .isPresent();
     }
 
     public void clearCallbackData(ChatData chatData) {

@@ -3,9 +3,10 @@ package dev.avatar.middle.service.telegram.command;
 import com.pengrad.telegrambot.TelegramBot;
 
 public interface TelegramCommand {
+
     String getDescription();
     String getCommand();
-    void processCommand(TelegramBot telegramBot, Long telegramUserId);
+    void processCommand(TelegramBot telegramBot, Long chatId);
 }
 
 /**

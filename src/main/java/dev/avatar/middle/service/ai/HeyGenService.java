@@ -83,7 +83,7 @@ public class HeyGenService {
                     .retrieve()
                     .bodyToMono(VideoStatusResponse.class)
                     .map(response -> {
-                        log.info("Received response for video status check: {}", response);
+                        log.debug("Received response for video status check: {}", response);
                         if ("completed".equals(response.data().status())) {
                             log.info("Video generation completed. Video URL: {}", response.data().video_url());
                             return Optional.of(response.data().video_url());

@@ -33,7 +33,7 @@ public class CommunicationTypeCallbackProcessor extends TelegramCallbackProcesso
 
     @Override
     public void process(TelegramBot bot, CallbackQuery callback, ChatData chatData) {
-        long chatId = callback.message().chat().id(); //todo message is deprecated
+        long chatId = chatData.getChatId(); //todo message is deprecated
         long telegramUserId = callback.from().id();
         ResponseType responseType = ResponseType.valueOf(callback.data());
         this.telegramUserService.updateUserResponseType(telegramUserId, responseType);

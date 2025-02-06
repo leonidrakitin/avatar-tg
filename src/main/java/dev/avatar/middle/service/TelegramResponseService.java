@@ -54,14 +54,18 @@ public class TelegramResponseService {
         try {
             this.deleteMockMessageIfExists(bot, chatData);
             switch (chatData.getResponseType()) {
-                case TEXT: bot.execute(
-                        new SendMessage(chatData.getChatId(), content)
-                                .parseMode(ParseMode.Markdown)
-                                .replyToMessageId(chatData.getCurrentUserMessageId())
-                );
+                case TEXT: {
+                    bot.execute(
+                            new SendMessage(chatData.getChatId(), content)
+                                    .parseMode(ParseMode.Markdown)
+                                    .replyToMessageId(chatData.getCurrentUserMessageId())
+                    );
+                    break;
+                }
                 case VIDEO: {
                     this.videoService.sendGenerateVideoRequest(chatData.getChatId(), content);
                     sendMockMessage(chatData, "⏳ Video is being generated..."); //todo i18n
+                    break;
                 }
             }
         }
@@ -98,7 +102,7 @@ public class TelegramResponseService {
                     this.deleteMockMessageIfExists(bot, chatData);
                     bot.execute(
                             new SendVideoNote(chatData.getChatId(), videoBytes)
-                                    .replyToMessageId(chatData.getCurrentUserMessageId())
+//                                    .replyToMessageId(chatData.getCurrentUserMessageId()) // todo why it does not work?
                     );
                 });
     }
