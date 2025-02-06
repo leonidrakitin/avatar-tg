@@ -5,6 +5,9 @@ app:
   username: ${TELEGRAM_BOT_USERNAME}
   token: ${TELEGRAM_BOT_TOKEN}
   hey-gen-api-key: ${HEYGEN_API_KEY}
+  hey-gen-base-url: ${HEYGEN_BASE_URL}
+  hey-gen-avatar-id: ${HEYGEN_AVATAR_ID}
+  hey-gen-voice-id: ${HEYGEN_VOICE_ID}
   autoresponder:
     threads: ${AUTORESPONDER_THREADS:8}
 telegram:
