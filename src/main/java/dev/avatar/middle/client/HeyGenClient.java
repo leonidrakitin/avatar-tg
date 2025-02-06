@@ -1,14 +1,16 @@
 package dev.avatar.middle.client;
 
 import dev.avatar.middle.conf.AppProperty;
+import dev.avatar.middle.exceptions.HeyGenException;
+import dev.avatar.middle.exceptions.enums.HeyGenErrorCode;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.Optional;
 
 @Slf4j
-@Service
+@Component
 public class HeyGenClient {
 
     private final WebClient webClient;
@@ -16,36 +18,28 @@ public class HeyGenClient {
 
     public HeyGenClient(WebClient.Builder webClientBuilder, AppProperty appProperty) {
         this.webClient = webClientBuilder
-                .baseUrl("https://api.heygen.com") //todo to config
+                .baseUrl(appProperty.getHeyGenBaseUrl())
                 .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(10 * 1024 * 1024))
                 .build();
         this.appProperty = appProperty;
-        log.info("HeyGenService initialized with base URL: https://api.heygen.com"); //todo to config
+        log.info("HeyGenClient initialized with base URL: {}", appProperty.getHeyGenBaseUrl());
     }
 
     public String generateVideo(String text) {
         //todo start logic service
-        log.info("Start generating video with text: {}", text);
 
-        if (text.length() > 1500) {
-            log.error("Text length exceeds 1500 characters. Length: {}", text.length());
-            throw new IllegalArgumentException("Text input exceeds the 1500 character limit.");
-        }
-
-        GenerateVideoRequest request = new GenerateVideoRequest(
-                new VideoInput[]{
-                        new VideoInput(
-                                new Character("avatar", "Gala_sitting_sofa_front_close", "normal"),
-                                new Voice("text", text, "35b75145af9041b298c720f23375f578", 1.1)
+        HeyGenClient.GenerateVideoRequest request = new HeyGenClient.GenerateVideoRequest(
+                new HeyGenClient.VideoInput[]{
+                        new HeyGenClient.VideoInput(
+                                new HeyGenClient.Character("avatar", appProperty.getHeyGenAvatarId(), "normal"),
+                                new HeyGenClient.Voice("text", text, appProperty.getHeyGenAvatarId(), 1.1)
                         )
                 },
-                new Dimension(600, 600)
+                new HeyGenClient.Dimension(600, 600)
         );
 
-        log.debug("Request payload: {}", request);
-        //todo end service
+        log.debug("Sending video generation request: {}", request);
         try {
-            // Преобразование в объект
             GenerateVideoResponse response = webClient.post()
                     .uri("/v2/video/generate")
                     .header("X-Api-Key", appProperty.getHeyGenApiKey())
@@ -57,16 +51,16 @@ public class HeyGenClient {
             log.debug("Parsed API response: {}", response);
 
             if (response == null || response.data() == null || response.data().video_id == null) {
-                log.error("API response is null or missing required fields. Response: {}", response);
-                throw new RuntimeException("Failed to generate video: response is null or missing videoId");
+                throw new HeyGenException(HeyGenErrorCode.VIDEO_GENERATION_FAILED,
+                        "Invalid response from HeyGen API: " + response);
             }
 
-            log.info("Video generation successful. Received videoId: {}", response.data().video_id);
+            log.info("Received videoId: {}", response.data().video_id);
             return response.data().video_id;
 
-        } catch (Exception e) {
-            log.error("Error occurred while generating video", e);
-            throw new RuntimeException("Error generating video: " + e.getMessage(), e);
+        }
+        catch (Exception e) {
+            throw new HeyGenException(HeyGenErrorCode.API_ERROR, "Error during video generation", e);
         }
     }
 
@@ -74,7 +68,7 @@ public class HeyGenClient {
         log.info("Checking status for videoId: {}", videoId);
 
         try {
-            Optional<String> videoUrl = webClient.get()
+            return webClient.get()
                     .uri(uriBuilder -> uriBuilder
                             .path("/v1/video_status.get")
                             .queryParam("video_id", videoId)
@@ -83,24 +77,17 @@ public class HeyGenClient {
                     .retrieve()
                     .bodyToMono(VideoStatusResponse.class)
                     .map(response -> {
-                        log.debug("Received response for video status check: {}", response);
+                        log.debug("Received video status response: {}", response);
                         if ("completed".equals(response.data().status())) {
-                            log.info("Video generation completed. Video URL: {}", response.data().video_url());
                             return Optional.of(response.data().video_url());
                         }
-                        else {
-                            log.debug("Video generation status: {}", response.data().status());
-                            return Optional.<String>empty();
-                        }
+                        return Optional.<String>empty();
                     })
                     .block();
-
-            return videoUrl;
-
         }
         catch (Exception e) {
-            log.error("Unexpected error while checking video status for videoId: {}", videoId, e);
-            return Optional.empty();
+            throw new HeyGenException(HeyGenErrorCode.VIDEO_STATUS_ERROR,
+                    "Error checking video status for videoId: " + videoId, e);
         }
     }
 
@@ -115,48 +102,66 @@ public class HeyGenClient {
                     .block();
 
             if (videoBytes == null) {
-                log.error("Downloaded video is null");
-                throw new RuntimeException("Failed to download video: response is null");
+                throw new HeyGenException(HeyGenErrorCode.VIDEO_DOWNLOAD_ERROR, "Downloaded video is null");
             }
 
-            log.info("Video downloaded successfully. Size: {} bytes", videoBytes.length);
+            log.info("Video downloaded successfully, size: {} bytes", videoBytes.length);
             return videoBytes;
-
         }
         catch (Exception e) {
-            log.error("Error occurred while downloading video from URL: {}", videoUrl, e);
-            throw new RuntimeException("Error downloading video: " + e.getMessage(), e);
+            throw new HeyGenException(HeyGenErrorCode.VIDEO_DOWNLOAD_ERROR,
+                    "Error downloading video from URL: " + videoUrl, e);
         }
     }
 
-    private record GenerateVideoRequest(VideoInput[] video_inputs, Dimension dimension) {
+    public record GenerateVideoRequest(VideoInput[] video_inputs, Dimension dimension) {
 
+        @Override
+        public String toString() {
+            return "GenerateVideoRequest{video_inputs=" + video_inputs + ", dimension=" + dimension + "}";
+        }
     }
 
-    private record VideoInput(Character character, Voice voice) {
+    public record VideoInput(Character character, Voice voice) {
 
+        @Override
+        public String toString() {
+            return "VideoInput{character=" + character + ", voice=" + voice + "}";
+        }
     }
 
-    private record Character(String type, String avatar_id, String avatar_style) {
+    public record Character(String type, String avatar_id, String avatar_style) {
 
+        @Override
+        public String toString() {
+            return "Character{type='" + type + "', avatar_id='" + avatar_id + "', avatar_style='" + avatar_style + "'}";
+        }
     }
 
-    private record Voice(String type, String input_text, String voice_id, double speed) {
+    public record Voice(String type, String input_text, String voice_id, double speed) {
 
+        @Override
+        public String toString() {
+            return "Voice{type='" + type + "', input_text='" + input_text + "', voice_id='" + voice_id + "', speed=" + speed + "}";
+        }
     }
 
-    private record Dimension(int width, int height) {
+    public record Dimension(int width, int height) {
 
+        @Override
+        public String toString() {
+            return "Dimension{width=" + width + ", height=" + height + "}";
+        }
     }
 
-    private record GenerateVideoResponse(Data data) {
+    public record GenerateVideoResponse(Data data) {
 
         @Override
         public String toString() {
             return "GenerateVideoResponse{data=" + data + "}";
         }
 
-        record Data(String video_id) {
+        public record Data(String video_id) {
 
             @Override
             public String toString() {
@@ -165,14 +170,14 @@ public class HeyGenClient {
         }
     }
 
-    private record VideoStatusResponse(Data data) {
+    public record VideoStatusResponse(Data data) {
 
         @Override
         public String toString() {
             return "VideoStatusResponse{data=" + data + "}";
         }
 
-        record Data(String status, String video_url) {
+        public record Data(String status, String video_url) {
 
             @Override
             public String toString() {

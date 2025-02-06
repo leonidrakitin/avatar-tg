@@ -19,4 +19,7 @@ public class AppProperty {
     private String token;
     private String username;
     private String heyGenApiKey;
+    private String heyGenBaseUrl;
+    private String heyGenAvatarId;
+    private String heyGenVoiceId;
 }
