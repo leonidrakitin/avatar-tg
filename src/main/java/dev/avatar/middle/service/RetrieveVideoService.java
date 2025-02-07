@@ -21,8 +21,8 @@ public class RetrieveVideoService {
 
     @Async
     public void retrieveAndSendResponse(Long chatId, String downloadUrl) {
+        this.videoService.deleteFromQueue(chatId);
         byte[] videoBytes = this.heyGenService.downloadVideo(downloadUrl);
         this.telegramResponseService.sendVideoNote(chatId, videoBytes, "Here's your video!"); //todo add text from Open AI response, текст который озвучивается
-        this.videoService.deleteFromQueue(chatId);
     }
 }
