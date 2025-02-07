@@ -33,7 +33,7 @@ public class HeyGenClient {
                 new HeyGenClient.VideoInput[]{
                         new HeyGenClient.VideoInput(
                                 new HeyGenClient.Character("avatar", appProperty.getHeyGenAvatarId(), "normal"),
-                                new HeyGenClient.Voice("text", text, appProperty.getHeyGenAvatarId(), 1.1)
+                                new HeyGenClient.Voice("text", text, appProperty.getHeyGenVoiceId(), 1.1)
                         )
                 },
                 new HeyGenClient.Dimension(600, 600)
