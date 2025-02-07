@@ -6,6 +6,7 @@ import dev.avatar.middle.exceptions.enums.HeyGenErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.util.Optional;
 
@@ -64,7 +65,7 @@ public class HeyGenClient {
         }
     }
 
-    public Optional<String> checkVideoStatus(String videoId) {
+    public Mono<Optional<String>> getVideoStatus(String videoId) {
         log.info("Checking status for videoId: {}", videoId);
 
         try {
@@ -81,9 +82,8 @@ public class HeyGenClient {
                         if ("completed".equals(response.data().status())) {
                             return Optional.of(response.data().video_url());
                         }
-                        return Optional.<String>empty();
-                    })
-                    .block();
+                        return Optional.empty();
+                    });
         }
         catch (Exception e) {
             throw new HeyGenException(HeyGenErrorCode.VIDEO_STATUS_ERROR,

@@ -27,14 +27,16 @@ public class RetrieveHeyGenResponseTask {
     private final VideoService videoService;
     private final RetrieveVideoService retrieveVideoService;
 
-    @Scheduled(fixedRate = 1000) //todo yaml property
+    @Scheduled(fixedRate = 3000) //todo yaml property
     public void performTask() {
         Set<Map.Entry<String, Long>> runIdWithTgChatId = this.videoService.getRunIdsQueue();
         for (Map.Entry<String, Long> entry : runIdWithTgChatId) {
             String videoRequestId = entry.getKey();
             Long telegramChatId = entry.getValue();
-            Optional<String> downloadUrl = this.heyGenService.checkVideoStatus(videoRequestId);
-            downloadUrl.ifPresent(url -> this.retrieveVideoService.retrieveAndSendResponse(telegramChatId, url));
+            this.heyGenService.checkVideoStatus(videoRequestId)
+                    .subscribe(downloadUrl -> downloadUrl.ifPresent(url ->
+                            this.retrieveVideoService.retrieveAndSendResponse(telegramChatId, url)
+                    ));
         }
     }
 }

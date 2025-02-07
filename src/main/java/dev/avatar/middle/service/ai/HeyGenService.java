@@ -3,6 +3,7 @@ package dev.avatar.middle.service.ai;
 import dev.avatar.middle.client.HeyGenClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.util.Optional;
 
@@ -26,9 +27,9 @@ public class HeyGenService {
         return heyGenClient.generateVideo(text);
     }
 
-    public Optional<String> checkVideoStatus(String videoId) {
-        log.info("Checking video status for videoId: {}", videoId);
-        return heyGenClient.checkVideoStatus(videoId);
+    public Mono<Optional<String>> checkVideoStatus(String videoId) {
+        log.debug("Checking video status for videoId: {}", videoId);
+        return heyGenClient.getVideoStatus(videoId);
     }
 
     public byte[] downloadVideo(String videoUrl) {
