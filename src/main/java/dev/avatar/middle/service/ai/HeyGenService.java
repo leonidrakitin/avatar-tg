@@ -1,6 +1,8 @@
 package dev.avatar.middle.service.ai;
 
 import dev.avatar.middle.client.HeyGenClient;
+import dev.avatar.middle.exceptions.HeyGenException;
+import dev.avatar.middle.exceptions.enums.HeyGenErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -17,9 +19,8 @@ public class HeyGenService {
         this.heyGenClient = heyGenClient;
     }
 
-    public String generateVideo(String text) {
+    public Mono<String> generateVideo(String text) {
         log.info("Generating video with text: {}", text);
-
         if (text.length() > 1500) {
             log.error("Text length exceeds limit: {}", text.length());
             throw new IllegalArgumentException("Text input exceeds the 1500 character limit.");

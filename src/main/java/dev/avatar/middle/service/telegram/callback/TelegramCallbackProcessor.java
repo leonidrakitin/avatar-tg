@@ -16,7 +16,11 @@ public abstract class TelegramCallbackProcessor {
 
     public void processCallback(TelegramBot telegramBot, CallbackQuery callback) {
         log.info("Processing telegram callback: {}", this.getCallbackType().toString());
-        ChatData chatData = this.chatDataService.getByChatId(callback.message().chat().id()); //todo deprecated
+        ChatData chatData = this.chatDataService.getByChatId(callback.message().chat().id()) //todo deprecated
+                .orElseThrow(() ->
+                        new RuntimeException("Unexpected behavior, chat data not found for chat id " +
+                                callback.message().chat().id())
+                ); //todo chatdataexceptions
         this.process(telegramBot, callback, chatData);
         this.clearData(chatData);
         log.info("Successfully finished processing telegram callback: {}", this.getCallbackType().toString());

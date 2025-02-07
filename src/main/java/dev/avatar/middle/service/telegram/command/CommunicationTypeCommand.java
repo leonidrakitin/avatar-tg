@@ -20,7 +20,9 @@ public class CommunicationTypeCommand implements TelegramCommand {
     //todo i18n, localization
     private final InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup(
             new InlineKeyboardButton("TEXT").callbackData(ResponseType.TEXT.toString()),
-            new InlineKeyboardButton("VIDEO").callbackData(ResponseType.VIDEO.toString()));
+            new InlineKeyboardButton("VIDEO").callbackData(ResponseType.VIDEO.toString()),
+            new InlineKeyboardButton("VOICE").callbackData(ResponseType.VOICE.toString()));
+
     private final ChatDataService chatDataService;
 
     @Override
@@ -35,7 +37,7 @@ public class CommunicationTypeCommand implements TelegramCommand {
 
     @Override
     public void processCommand(TelegramBot telegramBot, Long chatId) {
-        ChatData chatData = this.chatDataService.getByChatId(chatId);
+        ChatData chatData = this.chatDataService.getByChatId(chatId).orElseGet(() -> new ChatData(chatId, telegramBot));
         chatData.setCallbackType(CallbackType.CommunicationTypeCallback);
         this.chatDataService.save(chatData);
         SendMessage message = new SendMessage(

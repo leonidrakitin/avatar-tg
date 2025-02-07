@@ -2,6 +2,7 @@ package dev.avatar.middle.service;
 
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.CallbackQuery;
+import com.pengrad.telegrambot.model.Chat;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.User;
@@ -97,7 +98,7 @@ public class TelegramRequestService {
             }
         }
         catch (Exception e) {
-            log.error("Error processing message for user {}: {}", telegramUserId, e.getMessage());
+            log.error("Error processing message for user {}: {}", telegramUserId, e.getMessage(), e);
 //            bot.execute(new SendMessage(chatId, "❌ An error occurred while processing your request."));
         }
     }
@@ -146,7 +147,8 @@ public class TelegramRequestService {
     }
 
     private Optional<TelegramCallbackProcessor> getCallbackIfPresent(Long chatId) {
-        return Optional.ofNullable(this.chatDataService.getByChatId(chatId).getCallbackType())
+        return this.chatDataService.getByChatId(chatId)
+                .map(ChatData::getCallbackType)
                 .map(this::getCallbackIfPresent)
                 .flatMap(Function.identity());
     }

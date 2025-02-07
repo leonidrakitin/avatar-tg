@@ -35,4 +35,9 @@ public class ChatData {
         this.bot = bot;
         this.responseType = responseType;
     }
+
+    public ChatData(long chatId, TelegramBot bot) {
+        this.chatId = chatId;
+        this.bot = bot;
+    }
 }

@@ -18,8 +18,7 @@ public class VideoService {
     private final ConcurrentHashMap<String, Long> runsQueueWithTgChatId = new ConcurrentHashMap<>();
 
     public void sendGenerateVideoRequest(Long chatId, String content) {
-        String videoId = this.heyGenService.generateVideo(content);
-        runsQueueWithTgChatId.put(videoId, chatId);
+        this.heyGenService.generateVideo(content).subscribe(videoId -> runsQueueWithTgChatId.put(videoId, chatId));
     }
 
     public Set<Map.Entry<String, Long>> getRunIdsQueue() {

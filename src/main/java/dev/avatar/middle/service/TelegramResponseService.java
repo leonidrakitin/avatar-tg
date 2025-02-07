@@ -31,12 +31,11 @@ public class TelegramResponseService {
     private final VideoService videoService;
     private final VoiceService voiceService;
 
-    public void processWaiting(Long telegramChatId) {
-        ChatData chatData = chatDataService.getByChatId(telegramChatId);
-        if (chatData == null) {
-            log.error("Unexpected behavior, chat data not found for chat id {}", telegramChatId);
-            return;
-        }
+    public void processWaiting(Long chatId) {
+        ChatData chatData = chatDataService.getByChatId(chatId)
+                .orElseThrow(() ->
+                        new RuntimeException("Unexpected behavior, chat data not found for chat id " + chatId)
+                ); //todo chatdataexceptions
         if (chatData.getCurrentMockMessageId() == null) {
             this.sendMockMessage(chatData, "💻 Your request has been accepted! Please wait..."); //todo i18n
         }
@@ -49,11 +48,12 @@ public class TelegramResponseService {
                 .ifPresent(chatData::setCurrentMockMessageId);
     }
 
-    public void sendMessage(Long telegramChatId, String content) {
-        ChatData chatData = this.chatDataService.getByChatId(telegramChatId);
-        if (chatData == null) {
-            return;
-        }
+    public void sendMessage(Long chatId, String content) {
+        ChatData chatData = this.chatDataService.getByChatId(chatId)
+                .orElseThrow(() ->
+                        new RuntimeException("Unexpected behavior, chat data not found for chat id  " + chatId)
+                ); //todo chatdataexceptions
+
         TelegramBot bot = chatData.getBot();
         try {
             this.deleteMockMessageIfExists(bot, chatData);
@@ -83,7 +83,7 @@ public class TelegramResponseService {
     }
 
     public void sendPhoto(Long telegramChatId, byte[] photo, String caption) {
-        Optional.ofNullable(this.chatDataService.getByChatId(telegramChatId))
+        this.chatDataService.getByChatId(telegramChatId)
                 .ifPresent(chatData -> {
                     TelegramBot bot = chatData.getBot();
                     this.deleteMockMessageIfExists(bot, chatData);
@@ -97,14 +97,14 @@ public class TelegramResponseService {
     }
 
     public void sendUploadStatus(Long telegramChatId) {
-        Optional.ofNullable(this.chatDataService.getByChatId(telegramChatId))
+        this.chatDataService.getByChatId(telegramChatId)
                 .ifPresent(chatData ->
                         chatData.getBot().execute(new SendChatAction(chatData.getBot(), ChatAction.upload_photo))
                 );
     }
 
     public void sendVideoNote(Long telegramChatId, byte[] videoBytes, String caption) {
-        Optional.ofNullable(this.chatDataService.getByChatId(telegramChatId))
+        this.chatDataService.getByChatId(telegramChatId)
                 .ifPresent(chatData -> {
                     TelegramBot bot = chatData.getBot();
                     this.deleteMockMessageIfExists(bot, chatData);
@@ -116,7 +116,7 @@ public class TelegramResponseService {
     }
 
     public void sendVoice(Long telegramChatId, byte[] audioBytes){
-        Optional.ofNullable(this.chatDataService.getByChatId(telegramChatId))
+        this.chatDataService.getByChatId(telegramChatId)
                 .ifPresent(chatData -> {
                     TelegramBot bot = chatData.getBot();
                     this.deleteMockMessageIfExists(bot, chatData);

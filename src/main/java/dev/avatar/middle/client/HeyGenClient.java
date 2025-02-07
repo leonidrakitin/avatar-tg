@@ -26,7 +26,7 @@ public class HeyGenClient {
         log.info("HeyGenClient initialized with base URL: {}", appProperty.getHeyGenBaseUrl());
     }
 
-    public String generateVideo(String text) {
+    public Mono<String> generateVideo(String text) {
         //todo start logic service
 
         HeyGenClient.GenerateVideoRequest request = new HeyGenClient.GenerateVideoRequest(
@@ -41,24 +41,14 @@ public class HeyGenClient {
 
         log.debug("Sending video generation request: {}", request);
         try {
-            GenerateVideoResponse response = webClient.post()
+            return webClient.post()
                     .uri("/v2/video/generate")
                     .header("X-Api-Key", appProperty.getHeyGenApiKey())
                     .bodyValue(request)
                     .retrieve()
                     .bodyToMono(GenerateVideoResponse.class)
-                    .block();
-
-            log.debug("Parsed API response: {}", response);
-
-            if (response == null || response.data() == null || response.data().video_id == null) {
-                throw new HeyGenException(HeyGenErrorCode.VIDEO_GENERATION_FAILED,
-                        "Invalid response from HeyGen API: " + response);
-            }
-
-            log.info("Received videoId: {}", response.data().video_id);
-            return response.data().video_id;
-
+                    .map(GenerateVideoResponse::data)
+                    .map(GenerateVideoResponse.Data::video_id);
         }
         catch (Exception e) {
             throw new HeyGenException(HeyGenErrorCode.API_ERROR, "Error during video generation", e);
@@ -99,7 +89,7 @@ public class HeyGenClient {
                     .uri(videoUrl)
                     .retrieve()
                     .bodyToMono(byte[].class)
-                    .block();
+                    .block(); //todo do not use .block, implement subscribe logic, or return Mono via controller if data needed outside
 
             if (videoBytes == null) {
                 throw new HeyGenException(HeyGenErrorCode.VIDEO_DOWNLOAD_ERROR, "Downloaded video is null");

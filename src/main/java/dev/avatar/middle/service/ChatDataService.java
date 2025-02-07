@@ -11,9 +11,8 @@ public class ChatDataService {
     //todo entity + repository + audit
     private final ConcurrentHashMap<Long, ChatData> queueChatIdWithChatData = new ConcurrentHashMap<>();
 
-    public ChatData getByChatId(Long chatId) {
-        return Optional.ofNullable(queueChatIdWithChatData.get(chatId))
-                .orElseThrow(() -> new RuntimeException("Chat data not found with id " + chatId)); //todo chatdataexception
+    public Optional<ChatData> getByChatId(Long chatId) {
+        return Optional.ofNullable(queueChatIdWithChatData.get(chatId));
     }
 
     public void save(ChatData chatData) {
