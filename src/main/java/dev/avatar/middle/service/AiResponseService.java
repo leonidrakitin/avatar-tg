@@ -1,27 +1,16 @@
 package dev.avatar.middle.service;
 
 import com.pengrad.telegrambot.TelegramBot;
-import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.request.ChatAction;
-import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.model.request.ParseMode;
-import com.pengrad.telegrambot.request.DeleteMessage;
 import com.pengrad.telegrambot.request.SendChatAction;
 import com.pengrad.telegrambot.request.SendMessage;
-import com.pengrad.telegrambot.request.SendPhoto;
-import com.pengrad.telegrambot.request.SendVideoNote;
-import com.pengrad.telegrambot.request.SendVoice;
-import com.pengrad.telegrambot.response.SendResponse;
 import dev.avatar.middle.model.ChatData;
 import dev.avatar.middle.service.ai.ElevenLabsService;
 import dev.avatar.middle.service.ai.HeyGenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Slf4j
 @Service

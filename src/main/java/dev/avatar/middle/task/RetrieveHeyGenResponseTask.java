@@ -1,7 +1,6 @@
 package dev.avatar.middle.task;
 
 import dev.avatar.middle.service.ai.HeyGenService;
-import dev.avatar.middle.service.TelegramResponseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;

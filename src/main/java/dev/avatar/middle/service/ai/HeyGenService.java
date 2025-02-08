@@ -1,8 +1,6 @@
 package dev.avatar.middle.service.ai;
 
 import dev.avatar.middle.client.HeyGenClient;
-import dev.avatar.middle.exceptions.HeyGenException;
-import dev.avatar.middle.exceptions.enums.HeyGenErrorCode;
 import dev.avatar.middle.service.TelegramResponseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
