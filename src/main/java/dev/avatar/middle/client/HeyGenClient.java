@@ -56,7 +56,7 @@ public class HeyGenClient {
     }
 
     public Mono<Optional<String>> getVideoStatus(String videoId) {
-        log.info("Checking status for videoId: {}", videoId);
+        log.debug("Checking status for videoId: {}", videoId);
 
         try {
             return webClient.get()
@@ -81,26 +81,21 @@ public class HeyGenClient {
         }
     }
 
-    public byte[] downloadVideo(String videoUrl) {
+    public Mono<byte[]> downloadVideo(String videoUrl) {
         log.info("Downloading video from URL: {}", videoUrl);
 
         try {
-            byte[] videoBytes = webClient.get()
+            return webClient.get()
                     .uri(videoUrl)
                     .retrieve()
-                    .bodyToMono(byte[].class)
-                    .block(); //todo do not use .block, implement subscribe logic, or return Mono via controller if data needed outside
-
-            if (videoBytes == null) {
-                throw new HeyGenException(HeyGenErrorCode.VIDEO_DOWNLOAD_ERROR, "Downloaded video is null");
-            }
-
-            log.info("Video downloaded successfully, size: {} bytes", videoBytes.length);
-            return videoBytes;
+                    .bodyToMono(byte[].class);
         }
         catch (Exception e) {
-            throw new HeyGenException(HeyGenErrorCode.VIDEO_DOWNLOAD_ERROR,
-                    "Error downloading video from URL: " + videoUrl, e);
+            throw new HeyGenException(
+                    HeyGenErrorCode.VIDEO_DOWNLOAD_ERROR,
+                    "Error downloading video from URL: " + videoUrl,
+                    e
+            );
         }
     }
 

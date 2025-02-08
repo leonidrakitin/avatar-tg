@@ -14,20 +14,7 @@ public class ChatData {
     private Integer currentUserMessageId;
     private Integer currentMockMessageId;
     private LocalDateTime createdAt = LocalDateTime.now();
-
-    public ChatData(
-            long chatId,
-            int currentUserMessageId,
-            TelegramBot bot,
-            Integer currentMockMessageId,
-            ResponseType responseType
-    ) {
-        this.chatId = chatId;
-        this.currentUserMessageId = currentUserMessageId;
-        this.bot = bot;
-        this.currentMockMessageId = currentMockMessageId;
-        this.responseType = responseType;
-    }
+    private String caption;
 
     public ChatData(long chatId, int currentUserMessageId, TelegramBot bot, ResponseType responseType) {
         this.chatId = chatId;

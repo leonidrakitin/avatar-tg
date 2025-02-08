@@ -1,6 +1,7 @@
 package dev.avatar.middle.task;
 
 import com.logaritex.ai.api.Data;
+import dev.avatar.middle.service.AiResponseService;
 import dev.avatar.middle.service.ai.AssistantService;
 import dev.avatar.middle.service.TelegramResponseService;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import java.util.concurrent.ExecutionException;
 public class RetrieveAiResponseTask {
 
     private final AssistantService assistantService;
+    private final AiResponseService aiResponseService;
     private final TelegramResponseService telegramResponseService;
 
     @Scheduled(fixedRate = 1000) //todo yaml property @Scheduled(cron = "${task.meetings-update-expired-returned-to-backoffice.cron}", zone = "Europe/Moscow")
@@ -48,7 +50,7 @@ public class RetrieveAiResponseTask {
             }
         }
         if (image == null) {
-            this.telegramResponseService.sendMessage(telegramChatId, text);
+            this.aiResponseService.sendMessage(telegramChatId, text);
         } else {
             this.telegramResponseService.sendPhoto(telegramChatId, image, text);
         }

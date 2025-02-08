@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import reactor.core.publisher.Mono;
 
 import java.util.Map;
 
@@ -28,7 +29,7 @@ public class ElevenLabsClient {
         log.info("ElevenLabsClient initialized with base URL: {}", appProperty.getElevenLabsBaseUrl());
     }
 
-    public byte[] generateAudio(String text) {
+    public Mono<byte[]> generateAudio(String text) {
         String apiKey = appProperty.getElevenLabsApiKey();
         String voiceId = "HaBYvWY4zf3TchfK0j5Y";
         String modelId = "eleven_multilingual_v2";
@@ -46,7 +47,7 @@ public class ElevenLabsClient {
         log.debug("Sending text-to-speech request: {}", requestBody);
 
         try {
-            byte[] responseBytes = webClient.post()
+            return webClient.post()
                     .uri(uriBuilder -> uriBuilder
                             .path("/v1/text-to-speech/" + voiceId)
                             .queryParam("output_format", "mp3_44100_128")
@@ -55,16 +56,7 @@ public class ElevenLabsClient {
                     .header("Content-Type", "application/json")
                     .bodyValue(requestBody)
                     .retrieve()
-                    .bodyToMono(byte[].class)
-                    .block();
-
-            if (responseBytes == null || responseBytes.length == 0) {
-                throw new ElevenLabsException(ElevenLabsErrorCode.AUDIO_GENERATION_FAILED,
-                        "Empty response from ElevenLabs API");
-            }
-
-            log.info("Audio generated successfully, size: {} bytes", responseBytes.length);
-            return responseBytes;
+                    .bodyToMono(byte[].class);
         }
         catch (WebClientResponseException e) {
             log.error("ElevenLabs API error: {}", e.getResponseBodyAsString(), e);

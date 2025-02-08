@@ -43,9 +43,9 @@ public class CommunicationTypeCommand implements TelegramCommand {
         SendMessage message = new SendMessage(
                 chatId,
                 """
-                        Pick a format for my answers. I can reply to you in text,
-                        voice messages, and Circle Video format. You can always change
-                        this by pressing the \"menu\" button.
+                    Pick a format for my answers. I can reply to you in text,
+                    voice messages, and Circle Video format. You can always change
+                    this by pressing the \"menu\" button.
                     """
         ).replyMarkup(keyboard);
         telegramBot.execute(message);

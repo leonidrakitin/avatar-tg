@@ -132,7 +132,9 @@ public class TelegramRequestService {
             ResponseType responseType = this.telegramUserService.createIfNotExists(telegramUser).getResponseType();
             this.chatDataService.save(new ChatData(chatId, messageId, bot, responseType));
             this.assistantService.sendRequest(bot.getToken(), telegramUser.id(), text);
-            bot.execute(new SendChatAction(chatId, ChatAction.typing));
+            if (responseType == ResponseType.TEXT) {
+                bot.execute(new SendChatAction(chatId, ChatAction.typing));
+            }
         }
         catch (ExecutionException e) {
             log.error(e.getMessage());

@@ -29,10 +29,13 @@ public class ChatDataService {
         chatData.setCallbackType(null);
         chatData.setCurrentMockMessageId(null);
         chatData.setCurrentUserMessageId(null);
+        chatData.setCaption(null);
     }
+
 
     public void clearMessageData(ChatData chatData) {
         chatData.setCurrentMockMessageId(null);
         chatData.setCurrentUserMessageId(null);
+        chatData.setCaption(null);
     }
 }
