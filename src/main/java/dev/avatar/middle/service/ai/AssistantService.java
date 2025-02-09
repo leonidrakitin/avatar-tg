@@ -43,6 +43,11 @@ public class AssistantService {
 //        Data.Message = this.retrieveRun(runId).iterator().next();
 //    }
 
+    public String getAssistantId(String botId){
+        //todo обработать orElse
+        return this.assistantRepository.findByTelegramBotId(botId).map(AssistantEntity::getAssistantId).orElseThrow();
+    }
+
     public Optional<Data.Message> retrieveResponse(String runId) throws ExecutionException {
         Long tgChatId = runsQueueWithTgChatId.get(runId);
         Data.Thread thread = this.threadService.getThreadByTelegramChatId(tgChatId);
