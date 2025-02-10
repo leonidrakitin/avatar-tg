@@ -1,11 +1,13 @@
 package dev.avatar.middle.service;
 
 import dev.avatar.middle.model.ChatTempData;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 @Service
 public class ChatDataService {
     //todo entity + repository + audit
@@ -30,12 +32,17 @@ public class ChatDataService {
         chatTempData.setCurrentMockMessageId(null);
         chatTempData.setCurrentUserMessageId(null);
         chatTempData.setCaption(null);
+        log.info("Cleared data for bot {} chatId {}", chatTempData.getBot().getToken(), chatTempData.getChatId());
     }
-
 
     public void clearMessageData(ChatTempData chatTempData) {
         chatTempData.setCurrentMockMessageId(null);
         chatTempData.setCurrentUserMessageId(null);
         chatTempData.setCaption(null);
+        log.info("Cleared data for bot {} chatId {}", chatTempData.getBot().getToken(), chatTempData.getChatId());
+    }
+
+    public void clearMessageData(String botToken, Long chatId) {
+        this.get(botToken, chatId).ifPresent(this::clearMessageData);
     }
 }

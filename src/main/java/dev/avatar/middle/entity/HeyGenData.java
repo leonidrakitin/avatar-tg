@@ -14,13 +14,13 @@ import lombok.Setter;
 import java.util.UUID;
 
 @Entity
-@Table(name = "heygen_avatar")
+@Table(name = "heygen_data")
 @Getter
 @Setter
 @Builder(toBuilder = true)
 @NoArgsConstructor(force = true)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class HeyGenAvatar {
+public class HeyGenData {
 
     @Id
     private final UUID id;

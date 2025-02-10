@@ -3,11 +3,11 @@ package dev.avatar.middle.service.telegram.command;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
-import dev.avatar.middle.entity.HeyGenAvatar;
+import dev.avatar.middle.entity.HeyGenData;
 import dev.avatar.middle.entity.TelegramUserBotSettingsEntity;
 import dev.avatar.middle.model.Bot;
 import dev.avatar.middle.model.TelegramBotType;
-import dev.avatar.middle.repository.HeyGenAvatarRepository;
+import dev.avatar.middle.repository.HeygenDataRepository;
 import dev.avatar.middle.service.TelegramUserBotSettingsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class CallCommand implements TelegramCommand {
 
-    private final HeyGenAvatarRepository heyGenAvatarRepository;
+    private final HeygenDataRepository heygenDataRepository;
     private final TelegramUserBotSettingsService telegramUserBotSettingsService;
 
     @Override
@@ -39,7 +39,7 @@ public class CallCommand implements TelegramCommand {
     @Override
     public void processCommand(Bot telegramBot, Long chatId) {
 
-        HeyGenAvatar avatarData = this.heyGenAvatarRepository.findByBotTokenId(telegramBot.getToken())
+        HeyGenData avatarData = this.heygenDataRepository.findByBotTokenId(telegramBot.getToken())
                 .orElseThrow(); //todo add exception and global handler
 
         TelegramUserBotSettingsEntity settings =

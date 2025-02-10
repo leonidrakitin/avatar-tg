@@ -1,8 +1,8 @@
 package dev.avatar.middle.service.ai;
 
 import dev.avatar.middle.client.HeyGenClient;
-import dev.avatar.middle.entity.HeyGenAvatar;
-import dev.avatar.middle.repository.HeyGenAvatarRepository;
+import dev.avatar.middle.entity.HeyGenData;
+import dev.avatar.middle.repository.HeygenDataRepository;
 import dev.avatar.middle.service.TelegramResponseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,7 @@ public class HeyGenService {
     //todo move to database
     private final ConcurrentHashMap<RequestData, String> runsQueueWithTgChatId = new ConcurrentHashMap<>();
     private final HeyGenClient heyGenClient;
-    private final HeyGenAvatarRepository heyGenAvatarRepository;
+    private final HeygenDataRepository heygenDataRepository;
     private final TelegramResponseService responseService;
 
     public Mono<Optional<String>> checkVideoStatus(String videoId) {
@@ -31,7 +31,7 @@ public class HeyGenService {
     }
 
     public void sendGenerateVideoRequest(String botToken, Long chatId, String content) {
-        HeyGenAvatar avatarData = this.heyGenAvatarRepository.findByBotTokenId(botToken)
+        HeyGenData avatarData = this.heygenDataRepository.findByBotTokenId(botToken)
                 .orElseThrow(); //todo add exception and global handler
         this.generateVideo(avatarData.getAvatarId(), avatarData.getVoiceId(), content)
                 .subscribe(videoId -> runsQueueWithTgChatId.put(new RequestData(botToken, chatId), videoId));

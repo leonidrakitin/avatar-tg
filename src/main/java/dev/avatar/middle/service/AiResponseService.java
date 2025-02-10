@@ -42,8 +42,7 @@ public class AiResponseService {
             }
             case VOICE: {
                 bot.execute(new SendChatAction(chatId, ChatAction.record_voice));
-                this.elevenLabsService.generateAudioFromText(content)
-                        .subscribe((byte[] audio) -> this.telegramResponseService.sendVoice(botToken, chatId, audio, content));
+                this.elevenLabsService.generateAudioFromText(bot.getToken(), chatId, content);
                 break;
             }
         }

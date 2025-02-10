@@ -66,12 +66,14 @@ public class AssistantService {
     public void sendRequest(String assistantId, Long chatId, String botToken, String message, List<Data.Attachment> attachments) throws ExecutionException {
         Data.Assistant assistant = this.getAssistant(assistantId);
         Data.Thread thread = this.threadService.getThreadByTelegramChatId(chatId);
+        synchronized (assistant) {
             this.assistantApi.createMessage(
-                new Data.MessageRequest(Data.Role.user, Optional.ofNullable(message).orElse("")),
-                thread.id()
-        );
-        Data.Run run = this.assistantApi.createRun(thread.id(), new Data.RunRequest(assistant.id()));
-        this.runsQueueWithTgChatId.put(run.id(), new RequestData(chatId, botToken));
+                    new Data.MessageRequest(Data.Role.user, Optional.ofNullable(message).orElse("")),
+                    thread.id()
+            );
+            Data.Run run = this.assistantApi.createRun(thread.id(), new Data.RunRequest(assistant.id()));
+            this.runsQueueWithTgChatId.put(run.id(), new RequestData(chatId, botToken));
+        }
     }
 
     public Set<Map.Entry<String, RequestData>> getRunIdsQueue() {

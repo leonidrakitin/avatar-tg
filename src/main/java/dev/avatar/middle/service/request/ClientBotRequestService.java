@@ -55,7 +55,8 @@ public class ClientBotRequestService extends AbstractBotRequestService {
             }
             else if (message.videoNote() != null) {
                 this.processVoiceMessage(bot, messageId, message.videoNote().fileId(), message.from(), chatId);
-            } else {
+            }
+            else {
                 this.sendRequest(bot, messageId, text, message.from(), chatId);
             }
         }
@@ -93,11 +94,13 @@ public class ClientBotRequestService extends AbstractBotRequestService {
         try {
             ResponseType responseType = this.telegramUserBotSettingsService.createIfNotExists(bot.getToken(), chatId)
                     .getResponseType();
-            this.chatDataService.save(new ChatTempData(chatId, messageId, bot.getExecutableBot(), responseType));
-            this.assistantService.sendRequest(bot.getAssistantId(), telegramUser.id(), bot.getToken(), text);
             if (responseType == ResponseType.TEXT) {
                 bot.getExecutableBot().execute(new SendChatAction(chatId, ChatAction.typing));
             }
+            this.chatDataService.save(new ChatTempData(chatId, messageId, bot.getExecutableBot(), responseType));
+            this.assistantService.sendRequest(
+                    bot.getAssistantId(), telegramUser.id(), bot.getToken(), text
+            );
         }
         catch (ExecutionException e) {
             log.error(e.getMessage());

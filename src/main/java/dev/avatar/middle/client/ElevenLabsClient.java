@@ -24,15 +24,14 @@ public class ElevenLabsClient {
                 .codecs(configurer -> configurer.defaultCodecs()
                         .maxInMemorySize(10 * 1024 * 1024)
                 )
+//                .defaultHeader() //todo auth header
                 .build();
         this.appProperty = appProperty;
         log.info("ElevenLabsClient initialized with base URL: {}", appProperty.getElevenLabsBaseUrl());
     }
 
-    public Mono<byte[]> generateAudio(String text) {
-        String apiKey = appProperty.getElevenLabsApiKey();
-        String voiceId = "HaBYvWY4zf3TchfK0j5Y";
-        String modelId = "eleven_multilingual_v2";
+    public Mono<byte[]> generateAudio(String voiceId, String modelId, String text) {
+        String apiKey = appProperty.getElevenLabsApiKey(); //todo should be default
 
         Map<String, Object> requestBody = Map.of(
                 "text", text,
