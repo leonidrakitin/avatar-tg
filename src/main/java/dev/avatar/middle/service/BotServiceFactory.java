@@ -40,7 +40,7 @@ public class BotServiceFactory {
         this.clientBotRequestService = clientBotRequestService;
         this.godfatherBotRequestService = godfatherBotRequestService;
         this.commands = commands;
-        //todo check subscription
+        //todo check subscription/active flag -> findActive()
         telegramBotRepository.findAll()
                 .forEach(bot -> this.botCache.put(bot.getBotTokenId(), create(bot)));
     }

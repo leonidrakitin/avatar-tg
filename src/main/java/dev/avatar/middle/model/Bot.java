@@ -12,7 +12,7 @@ import java.util.List;
 abstract public class Bot {
 
     private final String token;
-    private final String assistantId;
+    private final String assistantId; //todo hide from here
     private final TelegramBot executableBot;
     private final TelegramBotType botType;
     private final List<TelegramCommand> commands;
