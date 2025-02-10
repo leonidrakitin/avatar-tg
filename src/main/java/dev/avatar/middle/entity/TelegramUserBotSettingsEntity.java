@@ -6,6 +6,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,7 +17,10 @@ import lombok.Setter;
 import java.util.UUID;
 
 @Entity
-@Table(name = "telegram_user_settings")
+@Table(
+        name = "telegram_user_settings",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"telegramChatId", "botTokenId"})
+)
 @Getter
 @Setter
 @Builder(toBuilder = true)
@@ -33,4 +37,6 @@ public class TelegramUserBotSettingsEntity {
 
     @Enumerated(EnumType.STRING)
     private final ResponseType responseType;
+
+    private final String languageCode;
 }

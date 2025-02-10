@@ -15,25 +15,26 @@ import java.util.Optional;
 public class HeyGenClient {
 
     private final WebClient webClient;
-    private final AppProperty appProperty;
+    private final AppProperty appProperty; //todo heygen property
 
     public HeyGenClient(WebClient.Builder webClientBuilder, AppProperty appProperty) {
         this.webClient = webClientBuilder
                 .baseUrl(appProperty.getHeyGenBaseUrl())
+                //.defaultHeader() //todo add here authorization
                 .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(10 * 1024 * 1024))
                 .build();
         this.appProperty = appProperty;
         log.info("HeyGenClient initialized with base URL: {}", appProperty.getHeyGenBaseUrl());
     }
 
-    public Mono<String> generateVideo(String text) {
+    public Mono<String> generateVideo(String avatarId, String voiceId, String text) {
         //todo start logic service
 
         HeyGenClient.GenerateVideoRequest request = new HeyGenClient.GenerateVideoRequest(
                 new HeyGenClient.VideoInput[]{
                         new HeyGenClient.VideoInput(
-                                new HeyGenClient.Character("avatar", appProperty.getHeyGenAvatarId(), "normal"),
-                                new HeyGenClient.Voice("text", text, appProperty.getHeyGenVoiceId(), 1.1)
+                                new HeyGenClient.Character("avatar", avatarId, "normal"),
+                                new HeyGenClient.Voice("text", text, voiceId, 1.1)
                         )
                 },
                 new HeyGenClient.Dimension(600, 600)
@@ -43,7 +44,7 @@ public class HeyGenClient {
         try {
             return webClient.post()
                     .uri("/v2/video/generate")
-                    .header("X-Api-Key", appProperty.getHeyGenApiKey())
+                    .header("X-Api-Key", appProperty.getHeyGenApiKey()) //todo add this header by default one time for all queries
                     .bodyValue(request)
                     .retrieve()
                     .bodyToMono(GenerateVideoResponse.class)

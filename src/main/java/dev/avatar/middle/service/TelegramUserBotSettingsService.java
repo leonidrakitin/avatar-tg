@@ -24,6 +24,7 @@ public class TelegramUserBotSettingsService {
                                 .telegramChatId(chatId)
                                 .botTokenId(botTokenId)
                                 .responseType(ResponseType.TEXT)
+                                .languageCode("en")
                                 .build()
                 ));
     }
