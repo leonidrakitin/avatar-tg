@@ -35,7 +35,7 @@ public class CallCommand implements TelegramCommand {
         String language = "en";
 
         String url = String.format(
-                "https://call-git-main-dimas-projects-5364656e.vercel.app/?chatid=%s&avatar_id=%s&avatar_voice_id=%s&assistant_id=%s&language=%s",
+                "https://call-v2.vercel.app/?chatid=%s&avatar_id=%s&avatar_voice_id=%s&assistant_id=%s&language=%s",
                 chatId, avatarId, avatarVoiceId, assistantId, language
         );
 
