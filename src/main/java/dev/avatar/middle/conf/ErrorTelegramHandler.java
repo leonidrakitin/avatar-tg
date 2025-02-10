@@ -1,3 +1,5 @@
+//todo common telegrams' errors handler
+
 //package dev.avatar.middle.conf;
 //
 //import dev.struchkov.godfather.main.domain.content.Message;

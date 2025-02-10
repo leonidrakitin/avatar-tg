@@ -1,12 +1,14 @@
 package dev.avatar.middle.service.telegram.command;
 
-import com.pengrad.telegrambot.TelegramBot;
+import dev.avatar.middle.model.Bot;
+import dev.avatar.middle.model.TelegramBotType;
 
 public interface TelegramCommand {
 
+    TelegramBotType getBotType();
     String getDescription();
     String getCommand();
-    void processCommand(TelegramBot telegramBot, Long chatId);
+    void processCommand(Bot telegramBot, Long chatId);
 }
 
 /**

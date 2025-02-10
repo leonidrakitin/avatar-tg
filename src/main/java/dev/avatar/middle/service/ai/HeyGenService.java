@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 public class HeyGenService {
 
-    private final ConcurrentHashMap<Long, String> runsQueueWithTgChatId = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<RequestData, String> runsQueueWithTgChatId = new ConcurrentHashMap<>();
     private final HeyGenClient heyGenClient;
     private final TelegramResponseService responseService;
 
@@ -26,17 +26,17 @@ public class HeyGenService {
         return heyGenClient.getVideoStatus(videoId);
     }
 
-    public void sendGenerateVideoRequest(Long chatId, String content) {
-        this.generateVideo(content).subscribe(videoId -> runsQueueWithTgChatId.put(chatId, videoId));
+    public void sendGenerateVideoRequest(String botToken, Long chatId, String content) {
+        this.generateVideo(content).subscribe(videoId -> runsQueueWithTgChatId.put(new RequestData(botToken, chatId), videoId));
     }
 
-    public void retrieveAndSendResponse(Long chatId, String downloadUrl) { //todo
+    public void retrieveAndSendResponse(String botToken, Long chatId, String downloadUrl) { //todo
         this.runsQueueWithTgChatId.remove(chatId);
         this.downloadVideo(downloadUrl)
-                .subscribe((byte[] videoBytes) -> this.responseService.sendVideoNote(chatId, videoBytes));
+                .subscribe((byte[] videoBytes) -> this.responseService.sendVideoNote(botToken, chatId, videoBytes));
     }
 
-    public Set<Map.Entry<Long, String>> getRunIdsQueue() {
+    public Set<Map.Entry<RequestData, String>> getRunIdsQueue() {
         return this.runsQueueWithTgChatId.entrySet();
     }
 
@@ -50,7 +50,8 @@ public class HeyGenService {
     }
 
     private Mono<byte[]> downloadVideo(String videoUrl) {
-        log.info("Downloading video from URL: {}", videoUrl);
         return heyGenClient.downloadVideo(videoUrl);
     }
+
+    public record RequestData(String botToken, Long chatId) {} //todo final
 }

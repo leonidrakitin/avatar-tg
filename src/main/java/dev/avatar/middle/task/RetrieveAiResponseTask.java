@@ -2,8 +2,8 @@ package dev.avatar.middle.task;
 
 import com.logaritex.ai.api.Data;
 import dev.avatar.middle.service.AiResponseService;
-import dev.avatar.middle.service.ai.AssistantService;
 import dev.avatar.middle.service.TelegramResponseService;
+import dev.avatar.middle.service.ai.AssistantService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -25,18 +25,19 @@ public class RetrieveAiResponseTask {
     @Scheduled(fixedRate = 1000) //todo yaml property @Scheduled(cron = "${task.meetings-update-expired-returned-to-backoffice.cron}", zone = "Europe/Moscow")
 
     public void performTask() throws ExecutionException {
-        Set<Map.Entry<String, Long>> runIdWithTgChatId = this.assistantService.getRunIdsQueue();
-        for (Map.Entry<String, Long> entry : runIdWithTgChatId) {
+        Set<Map.Entry<String, AssistantService.RequestData>> runIdWithTgChatId = this.assistantService.getRunIdsQueue();
+        for (Map.Entry<String, AssistantService.RequestData> entry : runIdWithTgChatId) {
             String runId = entry.getKey();
-            Long telegramChatId = entry.getValue();
+            Long chatId = entry.getValue().chatId();
+            String botToken = entry.getValue().botToken();
             this.assistantService.retrieveResponse(runId).ifPresentOrElse(
-                    response -> this.processResponse(response, telegramChatId),
-                    () -> this.telegramResponseService.processWaiting(telegramChatId)
+                    response -> this.processResponse(response, botToken, chatId),
+                    () -> this.telegramResponseService.processWaiting(botToken, chatId)
             );
         }
     }
 
-    private void processResponse(Data.Message response, Long telegramChatId) {
+    private void processResponse(Data.Message response, String botToken, Long chatId) {
         log.info("Retrieved run {}", response);
         String text = "";
         byte[] image = null;
@@ -44,15 +45,15 @@ public class RetrieveAiResponseTask {
             switch (content.type()) {
                 case text -> text = content.text().value();
                 case image_file -> {
-                    this.telegramResponseService.sendUploadStatus(telegramChatId);
+                    this.telegramResponseService.sendUploadStatus(botToken, chatId);
                     image = this.assistantService.retrieveFileContent(content.image_file().file_id());
                 }
             }
         }
         if (image == null) {
-            this.aiResponseService.sendMessage(telegramChatId, text);
+            this.aiResponseService.sendMessage(botToken, chatId, text);
         } else {
-            this.telegramResponseService.sendPhoto(telegramChatId, image, text);
+            this.telegramResponseService.sendPhoto(botToken, chatId, image, text);
         }
     }
 }

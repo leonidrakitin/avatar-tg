@@ -5,10 +5,10 @@ import com.pengrad.telegrambot.model.CallbackQuery;
 import com.pengrad.telegrambot.request.AnswerCallbackQuery;
 import com.pengrad.telegrambot.request.SendMessage;
 import dev.avatar.middle.model.CallbackType;
-import dev.avatar.middle.model.ChatData;
+import dev.avatar.middle.model.ChatTempData;
 import dev.avatar.middle.model.ResponseType;
 import dev.avatar.middle.service.ChatDataService;
-import dev.avatar.middle.service.TelegramUserService;
+import dev.avatar.middle.service.TelegramUserBotSettingsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -16,14 +16,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class CommunicationTypeCallbackProcessor extends TelegramCallbackProcessor {
 
-    private final TelegramUserService telegramUserService;
+    private final TelegramUserBotSettingsService telegramUserBotSettingsService;
 
     public CommunicationTypeCallbackProcessor(
             ChatDataService chatDataService,
-            TelegramUserService telegramUserService
+            TelegramUserBotSettingsService telegramUserBotSettingsService
     ) {
         super(chatDataService);
-        this.telegramUserService = telegramUserService;
+        this.telegramUserBotSettingsService = telegramUserBotSettingsService;
     }
 
     @Override
@@ -32,11 +32,11 @@ public class CommunicationTypeCallbackProcessor extends TelegramCallbackProcesso
     }
 
     @Override
-    public void process(TelegramBot bot, CallbackQuery callback, ChatData chatData) {
-        long chatId = chatData.getChatId(); //todo message is deprecated
-        long telegramUserId = callback.from().id();
+    public void process(TelegramBot bot, CallbackQuery callback, ChatTempData chatTempData) {
+        long chatId = chatTempData.getChatId();
+        String botToken = chatTempData.getBot().getToken();
         ResponseType responseType = ResponseType.valueOf(callback.data());
-        this.telegramUserService.updateUserResponseType(telegramUserId, responseType);
+        this.telegramUserBotSettingsService.updateUserResponseType(botToken, chatId, responseType);
         bot.execute(new AnswerCallbackQuery(callback.id()));
         bot.execute(new SendMessage(chatId, "✅ Response type set to: " + responseType));
     }

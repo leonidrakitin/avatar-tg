@@ -5,6 +5,12 @@ import com.google.common.cache.CacheBuilder;
 import com.logaritex.ai.api.AssistantApi;
 import com.logaritex.ai.api.AudioApi;
 import com.logaritex.ai.api.Data;
+import com.logaritex.ai.api.FileApi;
+import dev.avatar.middle.service.ThreadService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
@@ -14,27 +20,18 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import com.logaritex.ai.api.FileApi;
-import dev.avatar.middle.entity.AssistantEntity;
-import dev.avatar.middle.repository.AssistantRepository;
-import dev.avatar.middle.service.ThreadService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.stereotype.Service;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class AssistantService {
 
     private final ThreadService threadService;
-    private final AssistantRepository assistantRepository;
     private final AssistantApi assistantApi;
     private final FileApi fileApi;
     private final AudioApi audioApi;
 
-    private final ConcurrentHashMap<String, Long> runsQueueWithTgChatId = new ConcurrentHashMap<>();
+    //todo queue logic , to database
+    private final ConcurrentHashMap<String, RequestData> runsQueueWithTgChatId = new ConcurrentHashMap<>();
     private final Cache<String, Data.Assistant> assistantCache = CacheBuilder.newBuilder()
             .expireAfterWrite(1, TimeUnit.DAYS)
             .build();
@@ -44,7 +41,7 @@ public class AssistantService {
 //    }
 
     public Optional<Data.Message> retrieveResponse(String runId) throws ExecutionException {
-        Long tgChatId = runsQueueWithTgChatId.get(runId);
+        Long tgChatId = runsQueueWithTgChatId.get(runId).chatId();
         Data.Thread thread = this.threadService.getThreadByTelegramChatId(tgChatId);
         Data.Run runData = this.assistantApi.retrieveRun(thread.id(), runId);
         if (runData.status() != Data.Run.Status.completed) {
@@ -62,22 +59,22 @@ public class AssistantService {
         return this.fileApi.retrieveFileContent(fileId);
     }
 
-    public void sendRequest(String botId, Long tgChatId, String message) throws ExecutionException {
-        sendRequest(botId, tgChatId, message, null);
+    public void sendRequest(String assistantId, Long tgChatId, String botToken, String message) throws ExecutionException {
+        sendRequest(assistantId, tgChatId, botToken, message, null);
     }
 
-    public void sendRequest(String botId, Long tgChatId, String message, List<Data.Attachment> attachments) throws ExecutionException {
-        Data.Assistant assistant = this.getAssistant(botId);
-        Data.Thread thread = this.threadService.getThreadByTelegramChatId(tgChatId);
-        this.assistantApi.createMessage(
+    public void sendRequest(String assistantId, Long chatId, String botToken, String message, List<Data.Attachment> attachments) throws ExecutionException {
+        Data.Assistant assistant = this.getAssistant(assistantId);
+        Data.Thread thread = this.threadService.getThreadByTelegramChatId(chatId);
+            this.assistantApi.createMessage(
                 new Data.MessageRequest(Data.Role.user, Optional.ofNullable(message).orElse("")),
                 thread.id()
         );
         Data.Run run = this.assistantApi.createRun(thread.id(), new Data.RunRequest(assistant.id()));
-        this.runsQueueWithTgChatId.put(run.id(), tgChatId);
+        this.runsQueueWithTgChatId.put(run.id(), new RequestData(chatId, botToken));
     }
 
-    public Set<Map.Entry<String, Long>> getRunIdsQueue() {
+    public Set<Map.Entry<String, RequestData>> getRunIdsQueue() {
         return this.runsQueueWithTgChatId.entrySet();
     }
 
@@ -91,11 +88,12 @@ public class AssistantService {
         }
     }
 
-    public void processDocument(String botId, Long tgChatId, byte[] file, String content) throws ExecutionException {
+    public void processDocument(String assistantId, Long tgChatId, byte[] file, String content) throws ExecutionException {
         String fileId = this.uploadFile(file);
         this.sendRequest(
-                botId,
+                assistantId,
                 tgChatId,
+                this.runsQueueWithTgChatId.get(tgChatId).botToken(),
                 content,
                 List.of(new Data.Attachment(fileId, List.of(new Data.Tool(Data.Tool.Type.file_search))))
         );
@@ -105,17 +103,13 @@ public class AssistantService {
         return this.fileApi.uploadFile(new ByteArrayResource(file), Data.File.Purpose.ASSISTANTS).id();
     }
 
-    private Data.Assistant getAssistant(String botId) throws ExecutionException {
-        return this.assistantCache.get(botId, () -> this.loadAssistant(botId));
+    private Data.Assistant getAssistant(String assistantId) throws ExecutionException {
+        return this.assistantCache.get(assistantId, () -> this.loadAssistant(assistantId));
     }
 
-    private Data.Assistant loadAssistant(String botId) {
-        //AssistantEntity assistant =
-        return this.assistantRepository.findByTelegramBotId(botId)
-                .map(AssistantEntity::getAssistantId)
-                .map(this.assistantApi::retrieveAssistant)
-//                .orElse(createAssistant(botId)); // todo delete if needed to create new bot only
-                .orElseThrow();
+    private Data.Assistant loadAssistant(String assistantId) {
+        return Optional.ofNullable(this.assistantApi.retrieveAssistant(assistantId))
+                .orElseThrow(() -> new RuntimeException("Assistant not found")); //todo create AssistantException
     }
 
     private Data.Assistant createAssistant(String botId) {
@@ -129,7 +123,9 @@ public class AssistantService {
                 null,
                 null
         )); // metadata
-        this.assistantRepository.save(AssistantEntity.of(assistant.id(), botId));
+//        this.assistantRepository.save(AssistantEntity.of(assistant.id(), botId));
         return assistant;
     }
+
+    public record RequestData(Long chatId, String botToken) {}
 }

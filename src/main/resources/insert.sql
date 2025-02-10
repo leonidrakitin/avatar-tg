@@ -1,2 +1,2 @@
-INSERT INTO public.telegram_bot (telegram_id, bot_type, name) VALUES (6477484573, 'CLIENT_BOT', 'Math Teacher');
-INSERT INTO public.assistant (assistant_id, telegram_bot_id) VALUES ('asst_CaL75qVP9Hfr5uC49QmYp3fv', '7632291047:AAEJwuFxt4En9jkyX_Zv3o9nsATAacYydOc');
+INSERT INTO public.telegram_bot (assistant_id, bot_token_id, bot_type, name) VALUES ('asst_CaL75qVP9Hfr5uC49QmYp3fv', '6477484573:AAETV3wt5c7KTYLywleaVM2LrTbOb6lwWWU', 'CLIENT_BOT', 'Evgenia');
+INSERT INTO public.telegram_bot (assistant_id, bot_token_id, bot_type, name) VALUES ('asst_4u2rJPsHU9dJp3UdjEo1At0X', '7981707951:AAHfs0V_w5MH27rA7oCycDW0x2xc158nTCY', 'CLIENT_BOT', 'Lenya');

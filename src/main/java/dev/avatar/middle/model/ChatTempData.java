@@ -6,7 +6,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-public class ChatData {
+public class ChatTempData {
     private Long chatId;
     private TelegramBot bot; //todo bot Id, use botcache (guava) to get bots from there
     private ResponseType responseType;
@@ -16,14 +16,14 @@ public class ChatData {
     private LocalDateTime createdAt = LocalDateTime.now();
     private String caption;
 
-    public ChatData(long chatId, int currentUserMessageId, TelegramBot bot, ResponseType responseType) {
+    public ChatTempData(long chatId, int currentUserMessageId, TelegramBot bot, ResponseType responseType) {
         this.chatId = chatId;
         this.currentUserMessageId = currentUserMessageId;
         this.bot = bot;
         this.responseType = responseType;
     }
 
-    public ChatData(long chatId, TelegramBot bot) {
+    public ChatTempData(long chatId, TelegramBot bot) {
         this.chatId = chatId;
         this.bot = bot;
     }

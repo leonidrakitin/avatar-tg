@@ -19,14 +19,15 @@ public class RetrieveHeyGenResponseTask {
 
     @Scheduled(fixedRate = 3000) //todo yaml property
     public void performTask() {
-        Set<Map.Entry<Long, String>> runIdWithTgChatId = this.heyGenService.getRunIdsQueue();
-        for (Map.Entry<Long, String> entry : runIdWithTgChatId) {
-            Long chatId = entry.getKey();
+        Set<Map.Entry<HeyGenService.RequestData, String>> runIdWithTgChatId = this.heyGenService.getRunIdsQueue();
+        for (Map.Entry<HeyGenService.RequestData, String> entry : runIdWithTgChatId) {
+            Long chatId = entry.getKey().chatId();
+            String botToken = entry.getKey().botToken();
             String videoRequestId = entry.getValue();
             this.heyGenService.checkVideoStatus(videoRequestId)
                     .filter(Optional::isPresent)
                     .map(Optional::get)
-                    .subscribe(downloadUrl -> this.heyGenService.retrieveAndSendResponse(chatId, downloadUrl));
+                    .subscribe(downloadUrl -> this.heyGenService.retrieveAndSendResponse(botToken, chatId, downloadUrl));
         }
     }
 }
