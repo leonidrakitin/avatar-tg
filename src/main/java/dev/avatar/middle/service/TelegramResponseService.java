@@ -89,7 +89,8 @@ public class TelegramResponseService {
                     TelegramBot bot = chatData.getBot();
                     bot.execute(new SendChatAction(chatData.getChatId(), ChatAction.upload_video_note));
                     this.deleteMockMessageIfExists(bot, chatData);
-                    bot.execute(new SendMessage(chatData.getChatId(), chatData.getCaption()));
+                    Optional.ofNullable(chatData.getCaption())
+                                    .ifPresent(caption -> bot.execute(new SendMessage(chatData.getChatId(), caption)));
                     bot.execute(
                             new SendVideoNote(chatData.getChatId(), videoBytes)
                                     .replyToMessageId(chatData.getCurrentUserMessageId()) // todo why it does not work?
