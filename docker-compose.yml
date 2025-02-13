@@ -17,9 +17,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: kds-app
+    container_name: avatar-app
     environment:
-      - SQL_URL=jdbc:postgresql://avatar-db:5454/avatar
+      - SQL_URL=jdbc:postgresql://avatar-db:5432/avatar
       - SQL_USERNAME=root
       - SQL_PASSWORD=123456
     ports:
