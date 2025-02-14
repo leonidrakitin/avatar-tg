@@ -17,6 +17,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    env_file:
+      - secrets.env
     container_name: avatar-app
     environment:
       - SQL_URL=jdbc:postgresql://avatar-db:5432/avatar
