@@ -13,6 +13,7 @@ import java.util.List;
 @ConfigurationProperties("app")
 public class AppProperty {
 
+    private String defaultOpenAiUrl; //todo set this param
     private List<String> adminTelegramIds;
     private String telegramId;
     private String version;
