@@ -17,13 +17,13 @@ public class RetrieveHeyGenResponseTask {
 
     private final HeyGenService heyGenService;
 
-    @Scheduled(fixedRate = 3000) //todo yaml property
+    @Scheduled(fixedDelay = 5000) //todo yaml property
     public void performTask() {
-        Set<Map.Entry<HeyGenService.RequestData, String>> runIdWithTgChatId = this.heyGenService.getRunIdsQueue();
-        for (Map.Entry<HeyGenService.RequestData, String> entry : runIdWithTgChatId) {
-            Long chatId = entry.getKey().chatId();
-            String botToken = entry.getKey().botToken();
-            String videoRequestId = entry.getValue();
+        Set<Map.Entry<String, HeyGenService.RequestData>> runIdWithTgChatId = this.heyGenService.getRunIdsQueue();
+        for (Map.Entry<String, HeyGenService.RequestData> entry : runIdWithTgChatId) {
+            Long chatId = entry.getValue().chatId();;
+            String botToken = entry.getValue().botToken();
+            String videoRequestId = entry.getValue().videoId();
             this.heyGenService.checkVideoStatus(videoRequestId)
                     .filter(Optional::isPresent)
                     .map(Optional::get)
