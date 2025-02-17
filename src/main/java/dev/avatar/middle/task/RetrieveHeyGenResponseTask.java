@@ -17,7 +17,7 @@ public class RetrieveHeyGenResponseTask {
 
     private final HeyGenService heyGenService;
 
-    @Scheduled(fixedDelay = 5000) //todo yaml property
+    @Scheduled(fixedDelay = 5000)
     public void performTask() {
         Set<Map.Entry<String, HeyGenService.RequestData>> runIdWithTgChatId = this.heyGenService.getRunIdsQueue();
         for (Map.Entry<String, HeyGenService.RequestData> entry : runIdWithTgChatId) {

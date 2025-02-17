@@ -2,10 +2,10 @@ package dev.avatar.middle.service.ai;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.logaritex.ai.api.AssistantApi;
-import com.logaritex.ai.api.AudioApi;
-import com.logaritex.ai.api.Data;
-import com.logaritex.ai.api.FileApi;
+import dev.avatar.middle.client.OpenAiAssistantClient;
+import dev.avatar.middle.client.OpenAiAudioClient;
+import dev.avatar.middle.client.OpenAiFileClient;
+import dev.avatar.middle.client.dto.Data;
 import dev.avatar.middle.service.ThreadService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,9 +26,9 @@ import java.util.concurrent.TimeUnit;
 public class AssistantService {
 
     private final ThreadService threadService;
-    private final AssistantApi assistantApi;
-    private final FileApi fileApi;
-    private final AudioApi audioApi;
+    private final OpenAiAssistantClient openAiAssistantClient;
+    private final OpenAiFileClient openAiFileClient;
+    private final OpenAiAudioClient openAiAudioClient;
 
     //todo queue logic , to database
     private final ConcurrentHashMap<String, RequestData> runsQueueWithTgChatId = new ConcurrentHashMap<>();
@@ -43,12 +43,12 @@ public class AssistantService {
     public Optional<Data.Message> retrieveResponse(String runId) throws ExecutionException {
         Long tgChatId = runsQueueWithTgChatId.get(runId).chatId();
         Data.Thread thread = this.threadService.getThreadByTelegramChatId(tgChatId);
-        Data.Run runData = this.assistantApi.retrieveRun(thread.id(), runId);
+        Data.Run runData = this.openAiAssistantClient.retrieveRun(thread.id(), runId);
         if (runData.status() != Data.Run.Status.completed) {
             return Optional.empty();
         }
         this.runsQueueWithTgChatId.remove(runId);
-        Data.DataList<Data.Message> messages = assistantApi.listMessages(new Data.ListRequest(),
+        Data.DataList<Data.Message> messages = openAiAssistantClient.listMessages(new Data.ListRequest(),
                 thread.id());
         return messages.data().stream()
                 .filter(msg -> msg.role() == Data.Role.assistant)
@@ -56,24 +56,28 @@ public class AssistantService {
     }
 
     public byte[] retrieveFileContent(String fileId) {
-        return this.fileApi.retrieveFileContent(fileId);
+        return this.openAiFileClient.retrieveFileContent(fileId);
     }
 
-    public void sendRequest(String assistantId, Long tgChatId, String botToken, String message) throws ExecutionException {
-        sendRequest(assistantId, tgChatId, botToken, message, null);
+    public boolean sendRequest(String assistantId, Long tgChatId, String botToken, String message) throws ExecutionException {
+        return sendRequest(assistantId, tgChatId, botToken, message, null);
     }
 
-    public void sendRequest(String assistantId, Long chatId, String botToken, String message, List<Data.Attachment> attachments) throws ExecutionException {
+    public boolean sendRequest(String assistantId, Long chatId, String botToken, String message, List<Data.Attachment> attachments) throws ExecutionException {
         Data.Assistant assistant = this.getAssistant(assistantId);
         Data.Thread thread = this.threadService.getThreadByTelegramChatId(chatId);
-        synchronized (assistant) {
-            this.assistantApi.createMessage(
+        try {
+            this.openAiAssistantClient.createMessage(
                     new Data.MessageRequest(Data.Role.user, Optional.ofNullable(message).orElse("")),
                     thread.id()
             );
-            Data.Run run = this.assistantApi.createRun(thread.id(), new Data.RunRequest(assistant.id()));
+            Data.Run run = this.openAiAssistantClient.createRun(thread.id(), new Data.RunRequest(assistant.id()));
             this.runsQueueWithTgChatId.put(run.id(), new RequestData(chatId, botToken));
+            return true;
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
         }
+        return false;
     }
 
     public Set<Map.Entry<String, RequestData>> getRunIdsQueue() {
@@ -82,8 +86,8 @@ public class AssistantService {
 
     public String transcriptAudio(byte[] file) {
         try {
-            return this.audioApi.createTranscription(new AudioApi.TranscriptionRequest(
-                    file, "en", AudioApi.TranscriptionResponseFormat.text
+            return this.openAiAudioClient.createTranscription(new OpenAiAudioClient.TranscriptionRequest(
+                    file, "en", OpenAiAudioClient.TranscriptionResponseFormat.text
             ));
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -102,7 +106,7 @@ public class AssistantService {
     }
 
     public String uploadFile(byte[] file) {
-        return this.fileApi.uploadFile(new ByteArrayResource(file), Data.File.Purpose.ASSISTANTS).id();
+        return this.openAiFileClient.uploadFile(new ByteArrayResource(file), Data.File.Purpose.ASSISTANTS).id();
     }
 
     private Data.Assistant getAssistant(String assistantId) throws ExecutionException {
@@ -110,13 +114,13 @@ public class AssistantService {
     }
 
     private Data.Assistant loadAssistant(String assistantId) {
-        return Optional.ofNullable(this.assistantApi.retrieveAssistant(assistantId))
+        return Optional.ofNullable(this.openAiAssistantClient.retrieveAssistant(assistantId))
                 .orElseThrow(() -> new RuntimeException("Assistant not found")); //todo create AssistantException
     }
 
     private Data.Assistant createAssistant(String botId) {
 
-        Data.Assistant assistant = assistantApi.createAssistant(new Data.AssistantRequestBody(
+        Data.Assistant assistant = openAiAssistantClient.createAssistant(new Data.AssistantRequestBody(
                 "gpt-4-1106-preview", // model
                 "Math Tutor", // name
                 "", // description

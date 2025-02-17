@@ -98,11 +98,13 @@ public class GodfatherBotRequestService extends AbstractBotRequestService {
             long chatId
     ) {
         try {
-            this.chatDataService.save(new ChatTempData(chatId, messageId, bot.getExecutableBot(), ResponseType.TEXT));
-            this.assistantService.sendRequest(bot.getAssistantId(), telegramUser.id(), ",", text);
-                bot.getExecutableBot().execute(new SendChatAction(chatId, ChatAction.typing));
+            bot.getExecutableBot().execute(new SendChatAction(chatId, ChatAction.typing));
+            boolean success = this.assistantService.sendRequest(bot.getAssistantId(), telegramUser.id(), ",", text);
+            if (success) {
+                this.chatDataService.save(new ChatTempData(chatId, messageId, bot.getExecutableBot(), ResponseType.TEXT));
+            }
         }
-        catch (ExecutionException e) {
+        catch (Exception e) {
             log.error(e.getMessage());
             throw new RuntimeException(e); //todo add here more cases and log.errors etc
         }

@@ -1,6 +1,6 @@
 package dev.avatar.middle.task;
 
-import com.logaritex.ai.api.Data;
+import dev.avatar.middle.client.dto.Data;
 import dev.avatar.middle.service.AiResponseService;
 import dev.avatar.middle.service.TelegramResponseService;
 import dev.avatar.middle.service.ai.AssistantService;

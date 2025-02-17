@@ -1,8 +1,8 @@
 package dev.avatar.middle.conf;
 
-import com.logaritex.ai.api.AssistantApi;
-import com.logaritex.ai.api.AudioApi;
-import com.logaritex.ai.api.FileApi;
+import dev.avatar.middle.client.OpenAiAssistantClient;
+import dev.avatar.middle.client.OpenAiAudioClient;
+import dev.avatar.middle.client.OpenAiFileClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,17 +22,17 @@ public class AppConf {
 //    }
 
     @Bean
-    public AssistantApi getAssistantApi() {
-        return new AssistantApi(openAiToken);
+    public OpenAiAssistantClient getAssistantApi() {
+        return new OpenAiAssistantClient(openAiToken);
     }
 
     @Bean
-    public AudioApi getAudioApi() {
-        return new AudioApi(openAiToken);
+    public OpenAiAudioClient getAudioApi() {
+        return new OpenAiAudioClient(openAiToken);
     }
 
     @Bean
-    public FileApi getFileApi() {
-        return new FileApi(openAiToken);
+    public OpenAiFileClient getFileApi() {
+        return new OpenAiFileClient(openAiToken);
     }
 }

@@ -97,10 +97,12 @@ public class ClientBotRequestService extends AbstractBotRequestService {
             if (responseType == ResponseType.TEXT) {
                 bot.getExecutableBot().execute(new SendChatAction(chatId, ChatAction.typing));
             }
-            this.chatDataService.save(new ChatTempData(chatId, messageId, bot.getExecutableBot(), responseType));
-            this.assistantService.sendRequest(
+            boolean success = this.assistantService.sendRequest(
                     bot.getAssistantId(), telegramUser.id(), bot.getToken(), text
             );
+            if (success) {
+                this.chatDataService.save(new ChatTempData(chatId, messageId, bot.getExecutableBot(), responseType));
+            }
         }
         catch (ExecutionException e) {
             log.error(e.getMessage());
