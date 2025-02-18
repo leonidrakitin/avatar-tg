@@ -1,9 +1,9 @@
 package dev.avatar.middle.service.request;
 
 import com.pengrad.telegrambot.model.Message;
-import com.pengrad.telegrambot.model.User;
 import com.pengrad.telegrambot.model.request.ChatAction;
 import com.pengrad.telegrambot.request.SendChatAction;
+import dev.avatar.middle.entity.TelegramUserEntity;
 import dev.avatar.middle.model.Bot;
 import dev.avatar.middle.model.ChatTempData;
 import dev.avatar.middle.model.ResponseType;
@@ -11,6 +11,7 @@ import dev.avatar.middle.model.TelegramBotType;
 import dev.avatar.middle.service.ChatDataService;
 import dev.avatar.middle.service.TelegramFileService;
 import dev.avatar.middle.service.TelegramUserBotSettingsService;
+import dev.avatar.middle.service.TelegramUserService;
 import dev.avatar.middle.service.ai.AssistantService;
 import dev.avatar.middle.service.telegram.callback.TelegramCallbackProcessor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,17 +27,20 @@ public class ClientBotRequestService extends AbstractBotRequestService {
     private final AssistantService assistantService;
     private final TelegramFileService telegramFileService;
     private final TelegramUserBotSettingsService telegramUserBotSettingsService;
+    private final TelegramUserService telegramUserService;
     private final ChatDataService chatDataService;
 
     public ClientBotRequestService(
             ChatDataService chatDataService,
             List<TelegramCallbackProcessor> callbacks,
             AssistantService assistantService,
+            TelegramUserService telegramUserService,
             TelegramFileService telegramFileService,
             TelegramUserBotSettingsService telegramUserBotSettingsService
     ) {
         super(chatDataService, callbacks);
         this.assistantService = assistantService;
+        this.telegramUserService = telegramUserService;
         this.telegramFileService = telegramFileService;
         this.telegramUserBotSettingsService = telegramUserBotSettingsService;
         this.chatDataService = chatDataService;
@@ -48,16 +52,17 @@ public class ClientBotRequestService extends AbstractBotRequestService {
         long telegramUserId = message.from().id();
         int messageId = message.messageId();
         String text = message.text();
+        TelegramUserEntity telegramUserEntity = this.telegramUserService.createIfNotExists(message.from());
 
         try {
             if (message.voice() != null) {
-                this.processVoiceMessage(bot, messageId, message.voice().fileId(), message.from(), chatId);
+                this.processVoiceMessage(bot, messageId, message.voice().fileId(), telegramUserEntity, chatId);
             }
             else if (message.videoNote() != null) {
-                this.processVoiceMessage(bot, messageId, message.videoNote().fileId(), message.from(), chatId);
+                this.processVoiceMessage(bot, messageId, message.videoNote().fileId(), telegramUserEntity, chatId);
             }
             else {
-                this.sendRequest(bot, messageId, text, message.from(), chatId);
+                this.sendRequest(bot, messageId, text, chatId);
             }
         }
         catch (Exception e) {
@@ -75,20 +80,19 @@ public class ClientBotRequestService extends AbstractBotRequestService {
             Bot bot,
             int messageId,
             String fileId,
-            User telegramUser,
+            TelegramUserEntity telegramUser,
             long chatId
     ) {
         byte[] fileData = this.telegramFileService.getTelegramFile(bot.getExecutableBot(), fileId);
-        String transcribedAudio = this.assistantService.transcriptAudio(fileData, telegramUser.languageCode());
+        String transcribedAudio = this.assistantService.transcriptAudio(fileData, telegramUser.getSelectedLocale());
         log.debug("Got result from transcription audio service: {}", transcribedAudio); //todo i18n
-        this.sendRequest(bot, messageId, transcribedAudio, telegramUser, chatId);
+        this.sendRequest(bot, messageId, transcribedAudio, chatId);
     }
 
     private void sendRequest(
             Bot bot,
             int messageId,
             String text,
-            User telegramUser,
             long chatId
     ) {
         try {
@@ -97,9 +101,7 @@ public class ClientBotRequestService extends AbstractBotRequestService {
             if (responseType == ResponseType.TEXT) {
                 bot.getExecutableBot().execute(new SendChatAction(chatId, ChatAction.typing));
             }
-            boolean success = this.assistantService.sendRequest(
-                    bot.getAssistantId(), telegramUser.id(), bot.getToken(), text
-            );
+            boolean success = this.assistantService.sendRequest(bot.getAssistantId(), chatId, bot.getToken(), text);
             if (success) {
                 this.chatDataService.save(new ChatTempData(chatId, messageId, bot.getExecutableBot(), responseType));
             }

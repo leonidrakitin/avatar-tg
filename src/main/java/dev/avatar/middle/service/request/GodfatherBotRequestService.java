@@ -94,12 +94,11 @@ public class GodfatherBotRequestService extends AbstractBotRequestService {
             Bot bot,
             int messageId,
             String text,
-            User telegramUser,
             long chatId
     ) {
         try {
             bot.getExecutableBot().execute(new SendChatAction(chatId, ChatAction.typing));
-            boolean success = this.assistantService.sendRequest(bot.getAssistantId(), telegramUser.id(), ",", text);
+            boolean success = this.assistantService.sendRequest(bot.getAssistantId(), chatId, ",", text);
             if (success) {
                 this.chatDataService.save(new ChatTempData(chatId, messageId, bot.getExecutableBot(), ResponseType.TEXT));
             }
