@@ -79,7 +79,7 @@ public class ClientBotRequestService extends AbstractBotRequestService {
             long chatId
     ) {
         byte[] fileData = this.telegramFileService.getTelegramFile(bot.getExecutableBot(), fileId);
-        String transcribedAudio = this.assistantService.transcriptAudio(fileData);
+        String transcribedAudio = this.assistantService.transcriptAudio(fileData, telegramUser.languageCode());
         log.debug("Got result from transcription audio service: {}", transcribedAudio); //todo i18n
         this.sendRequest(bot, messageId, transcribedAudio, telegramUser, chatId);
     }

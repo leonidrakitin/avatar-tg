@@ -84,10 +84,10 @@ public class AssistantService {
         return this.runsQueueWithTgChatId.entrySet();
     }
 
-    public String transcriptAudio(byte[] file) {
+    public String transcriptAudio(byte[] file, String languageCode) {
         try {
             return this.openAiAudioClient.createTranscription(new OpenAiAudioClient.TranscriptionRequest(
-                    file, "en", OpenAiAudioClient.TranscriptionResponseFormat.text
+                    file, languageCode, OpenAiAudioClient.TranscriptionResponseFormat.text
             ));
         } catch (Exception e) {
             throw new RuntimeException(e);

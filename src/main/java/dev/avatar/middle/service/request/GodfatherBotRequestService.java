@@ -80,7 +80,7 @@ public class GodfatherBotRequestService extends AbstractBotRequestService {
             long chatId
     ) {
         byte[] fileData = this.telegramFileService.getTelegramFile(bot.getExecutableBot(), fileId);
-        String transcribedAudio = this.assistantService.transcriptAudio(fileData);
+        String transcribedAudio = this.assistantService.transcriptAudio(fileData, "en");
         log.debug("Got result from transcription audio service: {}", transcribedAudio); //todo i18n
         this.sendRequest(bot, messageId, transcribedAudio, telegramUser, chatId);
     }
