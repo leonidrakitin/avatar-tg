@@ -27,15 +27,8 @@ public class ChatDataService {
                 .isPresent();
     }
 
-    public void clearCallbackData(ChatTempData chatTempData) {
-        chatTempData.setCallbackType(null);
-        chatTempData.setCurrentMockMessageId(null);
-        chatTempData.setCurrentUserMessageId(null);
-        chatTempData.setCaption(null);
-        log.info("Cleared data for bot {} chatId {}", chatTempData.getBot().getToken(), chatTempData.getChatId());
-    }
-
     public void clearMessageData(ChatTempData chatTempData) {
+        chatTempData.setCallbackType(null);
         chatTempData.setCurrentMockMessageId(null);
         chatTempData.setCurrentUserMessageId(null);
         chatTempData.setCaption(null);

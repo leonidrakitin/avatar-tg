@@ -28,7 +28,7 @@ public abstract class TelegramCallbackProcessor {
 
     //todo clearCallbackData and clearMessageData move to service chat data
     public void clearData(ChatTempData chatTempData) {
-        chatDataService.clearCallbackData(chatTempData);
+        chatDataService.clearMessageData(chatTempData);
     }
 
     public abstract CallbackType getCallbackType();

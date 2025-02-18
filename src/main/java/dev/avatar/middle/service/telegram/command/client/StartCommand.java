@@ -44,6 +44,8 @@ public class StartCommand implements TelegramCommand {
 
                 🔹 Use ***/type*** to choose your preferred communication method: VOICE 🎙 / TEXT 💬 / VIDEO CIRCLE 📹
                 🔹 Use ***/call*** to create a meeting room with me.
+                🔹 Use ***/cancel*** to cancel previous request.
+
                 🔹 You can also access this by clicking the ***MENU*** button on the left side of the text input.
  
                 """).parseMode(ParseMode.Markdown);
