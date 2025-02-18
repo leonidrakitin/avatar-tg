@@ -34,15 +34,17 @@ abstract public class AbstractBotRequestService {
     public void processRequest(Bot bot, List<Update> updates) {
         for (Update update : updates) {
             if (isPossibleCommand(update.message())) {
-                if (this.chatDataService.isWaitingForAnswer(bot.getToken(), update.message().chat().id())) {
-                    bot.getExecutableBot().execute(new SendMessage( //todo implement method sendMessage
-                            update.message().chat().id(),
-                            "⌛️ Please ask me later when I finish processing your previous message!"
-                    )); //todo i18n, todo create separate method with this logic
-                    return;
-                }
                 Optional<TelegramCommand> cmd = this.getCommandIfPresent(bot.getCommands(), update.message().text());
                 if (cmd.isPresent()) {
+                    if (!cmd.get().getCommand().equals("/cancel")) {
+                        if (this.chatDataService.isWaitingForAnswer(bot.getToken(), update.message().chat().id())) {
+                            bot.getExecutableBot().execute(new SendMessage( //todo implement method sendMessage
+                                    update.message().chat().id(),
+                                    "⌛️ Please ask me later when I finish processing your previous message!"
+                            )); //todo i18n, todo create separate method with this logic
+                            return;
+                        }
+                    }
                     cmd.get().processCommand(bot, update.message().chat().id());
                     return;
                 }
