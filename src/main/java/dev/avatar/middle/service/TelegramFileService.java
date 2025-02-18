@@ -14,13 +14,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
+import java.util.Map;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class TelegramFileService {
 
-    private final FileApi tgfileApi;
+    private final Map<String, FileApi> tgfileApiMap;
 
     public byte[] getTelegramFile(TelegramBot bot, String fileId) {
         GetFile request = new GetFile(fileId);
@@ -28,7 +29,7 @@ public class TelegramFileService {
         if (getFileResponse.file() == null || getFileResponse.file().fileSize() > 20971520) { //todo set property limit file
             throw new RuntimeException("File error"); //todo TelegramFileException
         }
-        String fileUrl = this.tgfileApi.getFullFilePath(getFileResponse.file().filePath());
+        String fileUrl = this.tgfileApiMap.get(bot.getToken()).getFullFilePath(getFileResponse.file().filePath());
         File tempFile;
         try {
             tempFile = File.createTempFile("voice_", ".oga");
@@ -36,6 +37,7 @@ public class TelegramFileService {
         catch (IOException e) {
             throw new RuntimeException(e);
         }
+
         try (BufferedInputStream in = new BufferedInputStream(new URL(fileUrl).openStream());
              FileOutputStream fileOutputStream = new FileOutputStream(tempFile)) {
             byte[] dataBuffer = new byte[1024];
