@@ -23,7 +23,7 @@ openai:
 server:
 #  address: 192.168.0.15
   #  address: 192.168.0.6
-  port: 8080
+  port: 8000
   servlet:
     #    context-path: /api/v1
     encoding:
@@ -42,8 +42,7 @@ spring:
     database: postgresql
     show-sql: true
     hibernate:
-      #ddl-auto: validate
-#      ddl-auto: create
+      ddl-auto: create
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
