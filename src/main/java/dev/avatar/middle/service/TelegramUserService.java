@@ -14,20 +14,9 @@ public class TelegramUserService {
 
     private final TelegramUserRepository telegramUserRepository;
 
-    public TelegramUserEntity createIfNotExists(User telegramUser) {
+    public TelegramUserEntity createIfNotExists(Long chatId, User telegramUser) {
         return this.telegramUserRepository.findById(telegramUser.id())
-                .orElseGet(() ->
-                        this.telegramUserRepository.save(
-                                TelegramUserEntity.builder()
-                                        .telegramUserId(telegramUser.id())
-                                        .defaultLocale(telegramUser.languageCode())
-                                        .selectedLocale(telegramUser.languageCode())
-                                        .firstName(telegramUser.firstName())
-                                        .lastName(telegramUser.lastName())
-                                        .username(telegramUser.username())
-                                        .build()
-                        )
-                );
+                .orElseGet(() -> this.telegramUserRepository.save(TelegramUserEntity.of(chatId, telegramUser)));
     }
 
     // todo getOrCreate

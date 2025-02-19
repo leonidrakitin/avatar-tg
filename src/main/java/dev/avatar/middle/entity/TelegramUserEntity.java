@@ -23,6 +23,8 @@ public class TelegramUserEntity {
     @Id
     private final Long telegramUserId;
 
+    private final Long chatId;
+
     private final String username;
 
     private final String firstName;
@@ -33,8 +35,9 @@ public class TelegramUserEntity {
 
     private final String selectedLocale;
 
-    public static TelegramUserEntity of(User user) {
+    public static TelegramUserEntity of(Long chatId, User user) {
         return TelegramUserEntity.builder()
+                .chatId(chatId)
                 .telegramUserId(user.id())
                 .username(user.username())
                 .firstName(user.firstName())

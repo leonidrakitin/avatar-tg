@@ -1,37 +1,28 @@
 package dev.avatar.middle.service.telegram.command.godfather;
 
-import com.pengrad.telegrambot.model.BotCommand;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
-import com.pengrad.telegrambot.request.SetMyCommands;
+import dev.avatar.middle.entity.TelegramUserEntity;
 import dev.avatar.middle.model.Bot;
-import dev.avatar.middle.model.ResponseType;
 import dev.avatar.middle.model.TelegramBotType;
+import dev.avatar.middle.service.TelegramUserService;
 import dev.avatar.middle.service.telegram.command.TelegramCommand;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Component("godfatherStartCommand")
 @RequiredArgsConstructor
 public class StartCommand implements TelegramCommand {
 
-    private final InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup(
-            new InlineKeyboardButton("🇬🇧 English").callbackData(ResponseType.TEXT.toString()),
-            new InlineKeyboardButton("🇷🇺 Русский").callbackData(ResponseType.VIDEO.toString()),
-            new InlineKeyboardButton("🇩🇪 Deutsch").callbackData(ResponseType.TEXT.toString()),
-            new InlineKeyboardButton("🇸🇦 العربية").callbackData(ResponseType.TEXT.toString()),
-            new InlineKeyboardButton("🇨🇳 中文").callbackData(ResponseType.VOICE.toString()),
-            new InlineKeyboardButton("🇮🇹 Italiano").callbackData(ResponseType.TEXT.toString()),
-            new InlineKeyboardButton("🇫🇷 Français").callbackData(ResponseType.VIDEO.toString()),
-            new InlineKeyboardButton("🇪🇸 Español").callbackData(ResponseType.VOICE.toString()),
-            new InlineKeyboardButton("🇮🇳 हिन्दी").callbackData(ResponseType.TEXT.toString()),
-            new InlineKeyboardButton("🇹🇷 Türkçe").callbackData(ResponseType.TEXT.toString()),
-            new InlineKeyboardButton("🇯🇵 日本語").callbackData(ResponseType.VIDEO.toString()),
-            new InlineKeyboardButton("🇵🇹 Português").callbackData(ResponseType.VOICE.toString()));
+    private final TelegramUserService telegramUserService;
+    private final WhiteListService whiteListService;
+
+    private final InlineKeyboardMarkup applyNowKeyboard = new InlineKeyboardMarkup(
+            new InlineKeyboardButton("Apply now").url("http://ec2-16-16-104-222.eu-north-1.compute.amazonaws.com/")
+    );
+
 
     @Override
     public TelegramBotType getBotType() {
@@ -50,14 +41,48 @@ public class StartCommand implements TelegramCommand {
 
     @Override
     public void processCommand(Bot telegramBot, Long chatId) {
-        List<BotCommand> botCommands = telegramBot.getCommands().stream()
-                .map(cmd -> new BotCommand(cmd.getCommand(), cmd.getDescription()))
-                .toList();
-        SetMyCommands helpCommands = new SetMyCommands(botCommands.toArray(BotCommand[]::new));
-        telegramBot.getExecutableBot().execute(helpCommands);
-        SendMessage message = new SendMessage(chatId, "Hi! I'm **Updaily** Bot. Please choose preferred language for bot.")
-                .replyMarkup(keyboard)
-                .parseMode(ParseMode.Markdown);
-        telegramBot.getExecutableBot().execute(message);
+        boolean hasUserAccess = this.telegramUserService.findByChatId(chatId)
+                .map(TelegramUserEntity::getTelegramUserId)
+                .map(this.whiteListService::get)
+                .isPresent();
+
+        if (!hasUserAccess) {
+            SendMessage message =
+                    new SendMessage(chatId, "If you want to try create your own avatar, you can submit this form:")
+                            .replyMarkup(applyNowKeyboard)
+                            .parseMode(ParseMode.Markdown);
+            telegramBot.getExecutableBot().execute(message);
+            return;
+        }
+
+        //todo show menu
+
+
+        // if (whitelist) -> apply now
+        //
+        // - admin (if botEntity.admin == chatId/telegramId)
+        // -> /whitelist (long, username)
+        // 1. @username -> @botUserName
+        // 2. ..
+        // 3. ..
+        // -> add / remove  -> save / delete
+        //
+        // /menu --> List (edit), 'add new +'
+        //
+        // - user
+        // -> Create Avatar (делаем по шагам)
+        // --> 0. bot token id
+        // --> 1. Create assistant
+        // --> 2. Add heygen avatar ID
+        // --> 3. Add elevan labs voice ID
+        //
+        // --> List
+        //
+        // -> Edit Avatar (by botToken)
+        // --> Edit description
+        // --> Edit File
+        // ---> (fileIds) -> 1. 2. 3. -> add / remove
+        // --> Edit heygen avatar ID
+        // --> Edit elevan labs voice ID
     }
 }

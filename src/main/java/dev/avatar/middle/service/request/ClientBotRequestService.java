@@ -1,6 +1,7 @@
 package dev.avatar.middle.service.request;
 
 import com.pengrad.telegrambot.model.Message;
+import com.pengrad.telegrambot.model.User;
 import com.pengrad.telegrambot.model.request.ChatAction;
 import com.pengrad.telegrambot.request.SendChatAction;
 import dev.avatar.middle.entity.TelegramUserBotSettingsEntity;
@@ -52,10 +53,10 @@ public class ClientBotRequestService extends AbstractBotRequestService {
     @Override
     public void handleMessageUpdate(Bot bot, Message message) {
         long chatId = message.chat().id();
-        long telegramUserId = message.from().id();
+        User telegramUser = message.from();
         int messageId = message.messageId();
         String text = message.text();
-        TelegramUserEntity telegramUserEntity = this.telegramUserService.createIfNotExists(message.from());
+        TelegramUserEntity telegramUserEntity = this.telegramUserService.createIfNotExists(chatId, telegramUser);
 
         try {
             if (message.voice() != null) {
@@ -69,7 +70,12 @@ public class ClientBotRequestService extends AbstractBotRequestService {
             }
         }
         catch (Exception e) {
-            log.error("Error processing message for user {}: {}", telegramUserId, e.getMessage(), e); //todo i18n
+            log.error(
+                    "Error processing message for user {}: {}",
+                    telegramUserEntity.getTelegramUserId(),
+                    e.getMessage(),
+                    e
+            ); //todo i18n
 //            bot.execute(new SendMessage(chatId, "❌ An error occurred while processing your request."));
         }
     }

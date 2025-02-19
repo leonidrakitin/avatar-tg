@@ -41,8 +41,11 @@ public class BotServiceFactory {
         this.godfatherBotRequestService = godfatherBotRequestService;
         this.commands = commands;
         //todo check subscription/active flag -> findActive()
-        telegramBotRepository.findAll()
-                .forEach(bot -> this.botCache.put(bot.getBotTokenId(), create(bot)));
+        this.telegramBotRepository.findAll().forEach(this::initializeBot);
+    }
+
+    private void initializeBot(TelegramBotEntity bot) {
+        this.botCache.put(bot.getBotTokenId(), create(bot));
     }
 
     public Optional<Bot> get(String botTokenId) {
