@@ -3,11 +3,13 @@ package dev.avatar.middle.service.request;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.request.ChatAction;
 import com.pengrad.telegrambot.request.SendChatAction;
+import dev.avatar.middle.entity.TelegramUserBotSettingsEntity;
 import dev.avatar.middle.entity.TelegramUserEntity;
 import dev.avatar.middle.model.Bot;
 import dev.avatar.middle.model.ChatTempData;
 import dev.avatar.middle.model.ResponseType;
 import dev.avatar.middle.model.TelegramBotType;
+import dev.avatar.middle.repository.CallbackBotRepository;
 import dev.avatar.middle.service.ChatDataService;
 import dev.avatar.middle.service.TelegramFileService;
 import dev.avatar.middle.service.TelegramUserBotSettingsService;
@@ -36,9 +38,10 @@ public class ClientBotRequestService extends AbstractBotRequestService {
             AssistantService assistantService,
             TelegramUserService telegramUserService,
             TelegramFileService telegramFileService,
-            TelegramUserBotSettingsService telegramUserBotSettingsService
+            TelegramUserBotSettingsService telegramUserBotSettingsService,
+            CallbackBotRepository callbackBotRepository
     ) {
-        super(chatDataService, callbacks);
+        super(chatDataService, callbackBotRepository, callbacks);
         this.assistantService = assistantService;
         this.telegramUserService = telegramUserService;
         this.telegramFileService = telegramFileService;
@@ -84,8 +87,11 @@ public class ClientBotRequestService extends AbstractBotRequestService {
             long chatId
     ) {
         byte[] fileData = this.telegramFileService.getTelegramFile(bot.getExecutableBot(), fileId);
-        String transcribedAudio = this.assistantService.transcriptAudio(fileData, telegramUser.getSelectedLocale());
-        log.debug("Got result from transcription audio service: {}", transcribedAudio); //todo i18n
+        TelegramUserBotSettingsEntity settings = this.telegramUserBotSettingsService.getOrCreateIfNotExists(
+                bot.getToken(), chatId, telegramUser.getDefaultLocale()
+        );
+        String transcribedAudio = this.assistantService.transcriptAudio(fileData, settings.getLanguageCode());
+        log.debug("Got result from transcription audio service: {}", transcribedAudio);
         this.sendRequest(bot, messageId, transcribedAudio, chatId);
     }
 

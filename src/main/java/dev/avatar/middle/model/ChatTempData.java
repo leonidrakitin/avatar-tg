@@ -10,7 +10,6 @@ public class ChatTempData {
     private Long chatId;
     private TelegramBot bot; //todo bot Id, use botcache (guava) to get bots from there
     private ResponseType responseType;
-    private CallbackType callbackType;
     private Integer currentUserMessageId;
     private Integer currentMockMessageId;
     private LocalDateTime createdAt = LocalDateTime.now();

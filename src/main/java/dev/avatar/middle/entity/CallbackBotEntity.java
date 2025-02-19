@@ -1,6 +1,6 @@
 package dev.avatar.middle.entity;
 
-import dev.avatar.middle.model.TelegramBotType;
+import dev.avatar.middle.model.CallbackType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -13,26 +13,24 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @Entity
-@Table(name = "telegram_bot")
+@Table(name = "telegram_callbacks")
 @Getter
 @Setter
 @Builder(toBuilder = true)
 @NoArgsConstructor(force = true)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class TelegramBotEntity {
+public class CallbackBotEntity {
 
     @Id
+    private final UUID id;
+
     private final String botTokenId;
 
-    private final String name;
+    private final Integer callbackMessageId;
 
     @Enumerated(EnumType.STRING)
-    private final TelegramBotType botType;
-
-    private final String assistantId;
-
-//    @ManyToOne
-//    @JoinColumn(name = "telegram_user")
-//    private final TelegramUserEntity admin;
+    private final CallbackType callbackType;
 }

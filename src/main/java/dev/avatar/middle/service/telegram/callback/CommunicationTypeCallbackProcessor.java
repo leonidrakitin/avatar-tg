@@ -5,7 +5,6 @@ import com.pengrad.telegrambot.model.CallbackQuery;
 import com.pengrad.telegrambot.request.AnswerCallbackQuery;
 import com.pengrad.telegrambot.request.SendMessage;
 import dev.avatar.middle.model.CallbackType;
-import dev.avatar.middle.model.ChatTempData;
 import dev.avatar.middle.model.ResponseType;
 import dev.avatar.middle.service.ChatDataService;
 import dev.avatar.middle.service.TelegramUserBotSettingsService;
@@ -32,9 +31,9 @@ public class CommunicationTypeCallbackProcessor extends TelegramCallbackProcesso
     }
 
     @Override
-    public void process(TelegramBot bot, CallbackQuery callback, ChatTempData chatTempData) {
-        long chatId = chatTempData.getChatId();
-        String botToken = chatTempData.getBot().getToken();
+    public void process(TelegramBot bot, CallbackQuery callback) {
+        long chatId = callback.message().chat().id();
+        String botToken = bot.getToken();
         ResponseType responseType = ResponseType.valueOf(callback.data());
         this.telegramUserBotSettingsService.updateUserResponseType(botToken, chatId, responseType);
         bot.execute(new AnswerCallbackQuery(callback.id()));

@@ -5,10 +5,11 @@ import com.pengrad.telegrambot.model.CallbackQuery;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
+import dev.avatar.middle.entity.CallbackBotEntity;
 import dev.avatar.middle.model.Bot;
 import dev.avatar.middle.model.CallbackType;
-import dev.avatar.middle.model.ChatTempData;
 import dev.avatar.middle.model.TelegramBotType;
+import dev.avatar.middle.repository.CallbackBotRepository;
 import dev.avatar.middle.service.ChatDataService;
 import dev.avatar.middle.service.telegram.callback.TelegramCallbackProcessor;
 import dev.avatar.middle.service.telegram.command.TelegramCommand;
@@ -27,6 +28,7 @@ import java.util.function.Function;
 abstract public class AbstractBotRequestService {
 
     private final ChatDataService chatDataService;
+    private final CallbackBotRepository callbackBotRepository;
     private final List<TelegramCallbackProcessor> callbacks;
 
     //todo move all bot.execute to response service
@@ -68,7 +70,8 @@ abstract public class AbstractBotRequestService {
     public abstract TelegramBotType getSupportedBotType();
 
     private void handleCallbackQuery(TelegramBot bot, CallbackQuery callback) {
-        long chatId = callback.message().chat().id(); //todo message is deprecated
+        long chatId = callback.message().chat().id();
+        long callbackMessageId = callback.message().messageId();
         try {
             long telegramUserId = callback.from().id();
 
@@ -77,10 +80,18 @@ abstract public class AbstractBotRequestService {
                 return;
             }
             log.info("Got callback for userId {}, callback {}", telegramUserId, callback);
-            this.getCallbackIfPresent(bot.getToken(), chatId).ifPresentOrElse(
-                    processor -> processor.processCallback(bot, callback),
-                    () -> bot.execute(new SendMessage(chatId, "Please recall command to choose again")) //todo i18n
+            Optional<CallbackBotEntity> callbackBotEntity =
+                    this.callbackBotRepository.findByCallbackMessageIdAndAndBotTokenId(
+                    callbackMessageId, bot.getToken()
             );
+            if (callbackBotEntity.isEmpty()) {
+                bot.execute(new SendMessage(chatId, "Please recall command to choose again"));
+            }
+            this.getCallbackIfPresent(callbackBotEntity)
+                    .ifPresentOrElse(
+                            processor -> processor.processCallback(bot, callback),
+                            () -> bot.execute(new SendMessage(chatId, "Please recall command to choose again"))
+                    );
         }
         catch (Exception e) {
             log.error("Error handling callback", e);
@@ -88,9 +99,9 @@ abstract public class AbstractBotRequestService {
         }
     }
 
-    private Optional<TelegramCallbackProcessor> getCallbackIfPresent(String botToken, Long chatId) {
-        return this.chatDataService.get(botToken, chatId)
-                .map(ChatTempData::getCallbackType)
+    private Optional<TelegramCallbackProcessor> getCallbackIfPresent(Optional<CallbackBotEntity> callbackBotEntity) {
+        return callbackBotEntity
+                .map(CallbackBotEntity::getCallbackType)
                 .map(this::getCallbackIfPresent)
                 .flatMap(Function.identity());
     }

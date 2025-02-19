@@ -94,12 +94,12 @@ public class AssistantService {
         }
     }
 
-    public void processDocument(String assistantId, Long tgChatId, byte[] file, String content) throws ExecutionException {
+    public void processDocument(String botToken, String assistantId, Long tgChatId, byte[] file, String content) throws ExecutionException {
         String fileId = this.uploadFile(file);
         this.sendRequest(
                 assistantId,
                 tgChatId,
-                this.runsQueueWithTgChatId.get(tgChatId).botToken(),
+                this.runsQueueWithTgChatId.get(botToken + tgChatId).botToken(),
                 content,
                 List.of(new Data.Attachment(fileId, List.of(new Data.Tool(Data.Tool.Type.file_search))))
         );

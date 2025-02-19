@@ -28,7 +28,6 @@ public class ChatDataService {
     }
 
     public void clearMessageData(ChatTempData chatTempData) {
-        chatTempData.setCallbackType(null);
         chatTempData.setCurrentMockMessageId(null);
         chatTempData.setCurrentUserMessageId(null);
         chatTempData.setCaption(null);
