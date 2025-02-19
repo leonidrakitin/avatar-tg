@@ -27,7 +27,7 @@ public class CommunicationTypeCallbackProcessor extends TelegramCallbackProcesso
 
     @Override
     public CallbackType getCallbackType() {
-        return CallbackType.CommunicationTypeCallback;
+        return CallbackType.COMMUNICATION_TYPE_CALLBACK;
     }
 
     @Override

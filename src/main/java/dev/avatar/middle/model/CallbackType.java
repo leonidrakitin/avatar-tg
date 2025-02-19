@@ -1,6 +1,7 @@
 package dev.avatar.middle.model;
 
 public enum CallbackType {
-    CommunicationTypeCallback,
+    COMMUNICATION_TYPE_CALLBACK,
     LANGUAGE,
+    BOT_LIST
 }

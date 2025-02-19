@@ -4,25 +4,31 @@ import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
+import com.pengrad.telegrambot.response.SendResponse;
+import dev.avatar.middle.entity.CallbackBotEntity;
 import dev.avatar.middle.entity.TelegramUserEntity;
 import dev.avatar.middle.model.Bot;
+import dev.avatar.middle.model.CallbackType;
 import dev.avatar.middle.model.TelegramBotType;
 import dev.avatar.middle.service.TelegramUserService;
 import dev.avatar.middle.service.telegram.command.TelegramCommand;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+import java.util.UUID;
+
 @Component("godfatherStartCommand")
 @RequiredArgsConstructor
 public class StartCommand implements TelegramCommand {
 
+    private final TelegramBotService telegramBotService;
     private final TelegramUserService telegramUserService;
     private final WhiteListService whiteListService;
 
     private final InlineKeyboardMarkup applyNowKeyboard = new InlineKeyboardMarkup(
             new InlineKeyboardButton("Apply now").url("http://ec2-16-16-104-222.eu-north-1.compute.amazonaws.com/")
     );
-
 
     @Override
     public TelegramBotType getBotType() {
@@ -41,7 +47,8 @@ public class StartCommand implements TelegramCommand {
 
     @Override
     public void processCommand(Bot telegramBot, Long chatId) {
-        boolean hasUserAccess = this.telegramUserService.findByChatId(chatId)
+        Optional<TelegramUserEntity> telegramUserEntity = this.telegramUserService.findByChatId(chatId);
+        boolean hasUserAccess = telegramUserEntity
                 .map(TelegramUserEntity::getTelegramUserId)
                 .map(this.whiteListService::get)
                 .isPresent();
@@ -57,6 +64,25 @@ public class StartCommand implements TelegramCommand {
 
         //todo show menu
 
+        InlineKeyboardMarkup menu = new InlineKeyboardMarkup();
+        this.telegramBotService.findByAdmin(telegramUserEntity.get())
+                .forEach(bot -> menu.addRow(new InlineKeyboardButton(bot.getName()).callbackData(bot.getBotTokenId()))); // orBotId
+
+        menu.addRow(new InlineKeyboardButton("[+] Add new bot").callbackData("addBot"));
+        SendMessage message = new SendMessage(chatId, """
+                text todo
+                """)
+                .replyMarkup(keyboard)
+                .parseMode(ParseMode.Markdown);
+
+        SendResponse response = telegramBot.getExecutableBot().execute(message);
+        CallbackBotEntity callbackBotEntity = CallbackBotEntity.builder()
+                .id(UUID.randomUUID())
+                .botTokenId(telegramBot.getToken())
+                .callbackMessageId(response.message().messageId())
+                .callbackType(CallbackType.BOT_LIST)
+                .build();
+        this.callbackBotRepository.save(callbackBotEntity);
 
         // if (whitelist) -> apply now
         //
