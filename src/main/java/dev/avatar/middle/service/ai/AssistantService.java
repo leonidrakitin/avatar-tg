@@ -125,7 +125,7 @@ public class AssistantService {
                 "Math Tutor", // name
                 "", // description
                 "You are a personal math tutor. Write and run code to answer math questions.", // instructions
-                List.of(new Data.Tool(Data.Tool.Type.code_interpreter)), // tools
+                List.of(new Data.Tool(Data.Tool.Type.file_search)), // tools
                 null,
                 null
         )); // metadata
