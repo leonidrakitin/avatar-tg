@@ -242,7 +242,7 @@ public class Data {
 			String instructions,
 			List<Tool> tools,
 			List<String> file_ids,
-			List<ToolResources> tool_resources,
+			//List<ToolResources> tool_resources,
 			Map<String, String> metadata
 	) {
 	}
