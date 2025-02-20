@@ -85,9 +85,7 @@ public class BotServiceFactory {
 
     public void removeTelegramBot(String botTokenId) {
         Optional.ofNullable(this.botCache.getIfPresent(botTokenId))
-                .ifPresent(bot ->
-                        bot.getExecutableBot().setUpdatesListener(updates -> UpdatesListener.CONFIRMED_UPDATES_ALL)
-                );
+                .ifPresent(bot -> bot.getExecutableBot().shutdown());
         this.botCache.invalidate(botTokenId);
     }
 
