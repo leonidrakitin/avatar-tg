@@ -1,5 +1,6 @@
 package dev.avatar.middle.service.request;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.CallbackQuery;
 import com.pengrad.telegrambot.model.Message;
@@ -33,7 +34,7 @@ abstract public class AbstractBotRequestService {
 
     //todo move all bot.execute to response service
     @Async
-    public void processRequest(Bot bot, List<Update> updates) {
+    public void processRequest(Bot bot, List<Update> updates) throws JsonProcessingException {
         for (Update update : updates) {
             if (isPossibleCommand(update.message())) {
                 Optional<TelegramCommand> cmd = this.getCommandIfPresent(bot.getCommands(), update.message().text());
@@ -89,7 +90,13 @@ abstract public class AbstractBotRequestService {
             }
             this.getCallbackIfPresent(callbackBotEntity)
                     .ifPresentOrElse(
-                            processor -> processor.processCallback(bot, callback),
+                            processor -> {
+                                try {
+                                    processor.processCallback(bot, callback);
+                                } catch (JsonProcessingException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            },
                             () -> bot.execute(new SendMessage(chatId, "Please recall command to choose again"))
                     );
         }

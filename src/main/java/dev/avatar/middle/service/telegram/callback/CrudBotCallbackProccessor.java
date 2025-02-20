@@ -37,7 +37,7 @@ import java.util.UUID;
 
 @Slf4j
 @Component
-public class BotListCallbackProcessor extends TelegramCallbackProcessor {
+public class CrudBotCallbackProccessor extends TelegramCallbackProcessor {
 
     private final AssistantService assistantService;
     private final CallbackBotRepository callbackBotRepository;
@@ -47,7 +47,7 @@ public class BotListCallbackProcessor extends TelegramCallbackProcessor {
     private final TelegramUserService telegramUserService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public BotListCallbackProcessor(
+    public CrudBotCallbackProccessor(
             ChatDataService chatDataService,
             AssistantService assistantService,
             CallbackBotRepository callbackBotRepository,
@@ -215,3 +215,4 @@ public class BotListCallbackProcessor extends TelegramCallbackProcessor {
         this.callbackBotRepository.save(callbackBotEntity);
     }
 }
+

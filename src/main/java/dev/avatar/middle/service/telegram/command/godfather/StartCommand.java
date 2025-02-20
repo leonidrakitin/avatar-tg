@@ -1,34 +1,43 @@
 package dev.avatar.middle.service.telegram.command.godfather;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pengrad.telegrambot.model.BotCommand;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
+import com.pengrad.telegrambot.request.SetMyCommands;
 import com.pengrad.telegrambot.response.SendResponse;
 import dev.avatar.middle.entity.CallbackBotEntity;
-import dev.avatar.middle.entity.TelegramUserEntity;
+import dev.avatar.middle.entity.CallbackDataEntity;
 import dev.avatar.middle.model.Bot;
+import dev.avatar.middle.model.BotAction;
 import dev.avatar.middle.model.CallbackType;
 import dev.avatar.middle.model.TelegramBotType;
-import dev.avatar.middle.service.TelegramUserService;
+import dev.avatar.middle.repository.CallbackBotRepository;
+import dev.avatar.middle.repository.CallbackDataRepository;
+import dev.avatar.middle.repository.TelegramBotRepository;
+import dev.avatar.middle.repository.TelegramUserRepository;
 import dev.avatar.middle.service.telegram.command.TelegramCommand;
+import dev.avatar.middle.service.telegram.command.dto.BotActionDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
+import java.util.List;
 import java.util.UUID;
 
-@Component("godfatherStartCommand")
+@Slf4j
+@Component("godfatherBot")
 @RequiredArgsConstructor
 public class StartCommand implements TelegramCommand {
 
-    private final TelegramBotService telegramBotService;
-    private final TelegramUserService telegramUserService;
-    private final WhiteListService whiteListService;
-
-    private final InlineKeyboardMarkup applyNowKeyboard = new InlineKeyboardMarkup(
-            new InlineKeyboardButton("Apply now").url("http://ec2-16-16-104-222.eu-north-1.compute.amazonaws.com/")
-    );
+    private final ObjectMapper objectMapper;
+    private final CallbackBotRepository callbackBotRepository;
+    private final CallbackDataRepository callbackDataRepository;
+    private final TelegramBotRepository telegramBotRepository;
+    private final TelegramUserRepository telegramUserRepository;
 
     @Override
     public TelegramBotType getBotType() {
@@ -46,36 +55,21 @@ public class StartCommand implements TelegramCommand {
     }
 
     @Override
-    public void processCommand(Bot telegramBot, Long chatId) {
-        Optional<TelegramUserEntity> telegramUserEntity = this.telegramUserService.findByChatId(chatId);
-        boolean hasUserAccess = telegramUserEntity
-                .map(TelegramUserEntity::getTelegramUserId)
-                .map(this.whiteListService::get)
-                .isPresent();
+    public void processCommand(Bot telegramBot, Long chatId) throws JsonProcessingException {
 
-        if (!hasUserAccess) {
-            SendMessage message =
-                    new SendMessage(chatId, "If you want to try create your own avatar, you can submit this form:")
-                            .replyMarkup(applyNowKeyboard)
-                            .parseMode(ParseMode.Markdown);
-            telegramBot.getExecutableBot().execute(message);
-            return;
-        }
+        SendResponse response = telegramBot.getExecutableBot()
+                .execute(new SendMessage(chatId, "⭐\uFE0F ***UpDaily platform v1.0.0***\n\nPress ***start***")
+                .parseMode(ParseMode.Markdown)
+                .replyMarkup(new InlineKeyboardMarkup(
+                        new InlineKeyboardButton("Start")
+                                .callbackData(this.callbackDataRepository.save(
+                                        CallbackDataEntity.of(objectMapper.writeValueAsString(
+                                                new BotActionDto(BotAction.LIST.toString(), null)
+                                        ))
+                                ).getId().toString())
+                ))
+        );
 
-        //todo show menu
-
-        InlineKeyboardMarkup menu = new InlineKeyboardMarkup();
-        this.telegramBotService.findByAdmin(telegramUserEntity.get())
-                .forEach(bot -> menu.addRow(new InlineKeyboardButton(bot.getName()).callbackData(bot.getBotTokenId()))); // orBotId
-
-        menu.addRow(new InlineKeyboardButton("[+] Add new bot").callbackData("addBot"));
-        SendMessage message = new SendMessage(chatId, """
-                text todo
-                """)
-                .replyMarkup(keyboard)
-                .parseMode(ParseMode.Markdown);
-
-        SendResponse response = telegramBot.getExecutableBot().execute(message);
         CallbackBotEntity callbackBotEntity = CallbackBotEntity.builder()
                 .id(UUID.randomUUID())
                 .botTokenId(telegramBot.getToken())
@@ -84,31 +78,16 @@ public class StartCommand implements TelegramCommand {
                 .build();
         this.callbackBotRepository.save(callbackBotEntity);
 
-        // if (whitelist) -> apply now
-        //
-        // - admin (if botEntity.admin == chatId/telegramId)
-        // -> /whitelist (long, username)
-        // 1. @username -> @botUserName
-        // 2. ..
-        // 3. ..
-        // -> add / remove  -> save / delete
-        //
-        // /menu --> List (edit), 'add new +'
-        //
-        // - user
-        // -> Create Avatar (делаем по шагам)
-        // --> 0. bot token id
-        // --> 1. Create assistant
-        // --> 2. Add heygen avatar ID
-        // --> 3. Add elevan labs voice ID
-        //
-        // --> List
-        //
-        // -> Edit Avatar (by botToken)
-        // --> Edit description
-        // --> Edit File
-        // ---> (fileIds) -> 1. 2. 3. -> add / remove
-        // --> Edit heygen avatar ID
-        // --> Edit elevan labs voice ID
+        boolean hasAdminAccess =
+                this.telegramUserRepository.findByChatIdAndAccessToUpDaily(chatId, true)
+                        .map(user -> telegramBotRepository.findByAdminAndBotType(user, TelegramBotType.GODFATHER_BOT))
+                        .isPresent();
+
+        List<BotCommand> botCommands = telegramBot.getCommands().stream()
+                .filter(cmd -> !cmd.getCommand().equals("/whitelist") || hasAdminAccess)
+                .map(cmd -> new BotCommand(cmd.getCommand(), cmd.getDescription()))
+                .toList();
+        SetMyCommands helpCommands = new SetMyCommands(botCommands.toArray(BotCommand[]::new));
+        telegramBot.getExecutableBot().execute(helpCommands);
     }
 }

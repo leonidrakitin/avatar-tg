@@ -1,16 +1,19 @@
 package dev.avatar.middle.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
+import dev.avatar.middle.client.dto.Data;
 import dev.avatar.middle.entity.TelegramBotEntity;
 import dev.avatar.middle.model.Bot;
 import dev.avatar.middle.model.ClientBot;
 import dev.avatar.middle.model.GodfatherBot;
 import dev.avatar.middle.model.TelegramBotType;
 import dev.avatar.middle.repository.TelegramBotRepository;
+import dev.avatar.middle.service.ai.AssistantService;
 import dev.avatar.middle.service.request.AbstractBotRequestService;
 import dev.avatar.middle.service.request.ClientBotRequestService;
 import dev.avatar.middle.service.request.GodfatherBotRequestService;
@@ -27,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class BotServiceFactory {
 
+    private final AssistantService assistantService;
     private final TelegramBotRepository telegramBotRepository;
     private final ClientBotRequestService clientBotRequestService;
     private final GodfatherBotRequestService godfatherBotRequestService;
@@ -35,7 +39,14 @@ public class BotServiceFactory {
             .expireAfterWrite(1, TimeUnit.DAYS)
             .build();
 
-    public BotServiceFactory(TelegramBotRepository telegramBotRepository, ClientBotRequestService clientBotRequestService, GodfatherBotRequestService godfatherBotRequestService, List<TelegramCommand> commands) {
+    public BotServiceFactory(
+            AssistantService assistantService,
+            TelegramBotRepository telegramBotRepository,
+            ClientBotRequestService clientBotRequestService,
+            GodfatherBotRequestService godfatherBotRequestService,
+            List<TelegramCommand> commands
+    ) {
+        this.assistantService = assistantService;
         this.telegramBotRepository = telegramBotRepository;
         this.clientBotRequestService = clientBotRequestService;
         this.godfatherBotRequestService = godfatherBotRequestService;
@@ -44,23 +55,47 @@ public class BotServiceFactory {
         this.telegramBotRepository.findAll().forEach(this::initializeBot);
     }
 
-    private void initializeBot(TelegramBotEntity bot) {
-        this.botCache.put(bot.getBotTokenId(), create(bot));
-    }
-
     public Optional<Bot> get(String botTokenId) {
         try {
             return Optional.of(this.botCache.get(
                     botTokenId,
-                    () -> create(this.telegramBotRepository.findByBotTokenId(botTokenId).orElseThrow())
+                    () -> startTelegramBot(this.telegramBotRepository.findByBotTokenId(botTokenId).orElseThrow())
             ));
         } catch (ExecutionException e) {
-            log.error("Catch error: {}, description: {}", e.getCause().getMessage(), e.getCause().getMessage());
+            log.error("Catch error: {}, description: {}",
+                    e.getCause().getMessage(), e.getCause().getMessage(), e);
         }
         return Optional.empty();
     }
 
-    public Bot create(TelegramBotEntity botEntity) {
+    public void createTelegramBot(String botTokenId, String name, String description, String instructions) {
+        String vectorStoreId = this.assistantService.createVectorStore();
+        Data.Assistant assistant = this.assistantService.createAssistant(
+                vectorStoreId, name, description, instructions
+        );
+        TelegramBotEntity telegramBotEntity = TelegramBotEntity.builder()
+                .botTokenId(botTokenId)
+                .assistantId(assistant.id())
+                .vectorStoreId(vectorStoreId)
+                .name(name)
+                .botType(TelegramBotType.CLIENT_BOT)
+                .build();
+        this.initializeBot(telegramBotEntity);
+    }
+
+    public void removeTelegramBot(String botTokenId) {
+        Optional.ofNullable(this.botCache.getIfPresent(botTokenId))
+                .ifPresent(bot ->
+                        bot.getExecutableBot().setUpdatesListener(updates -> UpdatesListener.CONFIRMED_UPDATES_ALL)
+                );
+        this.botCache.invalidate(botTokenId);
+    }
+
+    private void initializeBot(TelegramBotEntity bot) {
+        this.botCache.put(bot.getBotTokenId(), startTelegramBot(bot));
+    }
+
+    private Bot startTelegramBot(TelegramBotEntity botEntity) {
         Bot botModel = switch (botEntity.getBotType()) {
             case GODFATHER_BOT -> new GodfatherBot(
                     botEntity.getBotTokenId(),
@@ -85,7 +120,11 @@ public class BotServiceFactory {
 
         botModel.getExecutableBot().setUpdatesListener(
                 (List<Update> updates) -> {
-                    requestService.processRequest(botModel, updates);
+                    try {
+                        requestService.processRequest(botModel, updates);
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException(e);
+                    }
                     return UpdatesListener.CONFIRMED_UPDATES_ALL;
                 },
                 //todo create handler and move it there
@@ -107,6 +146,4 @@ public class BotServiceFactory {
                 .filter(command -> command.getBotType() == botType)
                 .toList();
     }
-
-    //todo create, edit, update bot
 }

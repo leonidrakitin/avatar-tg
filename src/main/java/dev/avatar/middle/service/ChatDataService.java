@@ -17,8 +17,8 @@ public class ChatDataService {
         return Optional.ofNullable(queueChatIdWithChatData.get(botToken + chatId));
     }
 
-    public void save(ChatTempData chatTempData) {
-        queueChatIdWithChatData.put(chatTempData.getBot().getToken() + chatTempData.getChatId(), chatTempData);
+    public ChatTempData save(ChatTempData chatTempData) {
+        return queueChatIdWithChatData.put(chatTempData.getBot().getToken() + chatTempData.getChatId(), chatTempData);
     }
 
     public boolean isWaitingForAnswer(String botToken, Long chatId) {

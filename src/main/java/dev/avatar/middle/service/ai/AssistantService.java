@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class AssistantService {
 
+    public static final String GPT_4_O_MINI = "gpt-4o-mini";
     private final ThreadService threadService;
     private final OpenAiAssistantClient openAiAssistantClient;
     private final OpenAiFileClient openAiFileClient;
@@ -59,11 +60,12 @@ public class AssistantService {
         return this.openAiFileClient.retrieveFileContent(fileId);
     }
 
-    public boolean sendRequest(String assistantId, Long tgChatId, String botToken, String message) throws ExecutionException {
-        return sendRequest(assistantId, tgChatId, botToken, message, null);
+    public void deleteFile(String vectorStoreId, String fileId) {
+        this.openAiFileClient.deleteFile(vectorStoreId, fileId);
+        this.openAiFileClient.deleteFile(fileId);
     }
 
-    public boolean sendRequest(String assistantId, Long chatId, String botToken, String message, List<Data.Attachment> attachments) throws ExecutionException {
+    public boolean sendRequest(String assistantId, Long chatId, String botToken, String message) throws ExecutionException {
         Data.Assistant assistant = this.getAssistant(assistantId);
         Data.Thread thread = this.threadService.getThreadByTelegramChatId(chatId);
         try {
@@ -94,19 +96,33 @@ public class AssistantService {
         }
     }
 
-    public void processDocument(String botToken, String assistantId, Long tgChatId, byte[] file, String content) throws ExecutionException {
-        String fileId = this.uploadFile(file);
-        this.sendRequest(
-                assistantId,
-                tgChatId,
-                this.runsQueueWithTgChatId.get(botToken + tgChatId).botToken(),
-                content,
-                List.of(new Data.Attachment(fileId, List.of(new Data.Tool(Data.Tool.Type.file_search))))
-        );
+    public Data.VectorStoreList getAllFiles(String vectorStoreId, String afterId) {
+        return this.openAiFileClient.retrieveVectorStoreFiles(vectorStoreId, afterId);
     }
 
-    public String uploadFile(byte[] file) {
-        return this.openAiFileClient.uploadFile(new ByteArrayResource(file), Data.File.Purpose.ASSISTANTS).id();
+    public Data.File getFileData(String fileId) {
+        return this.openAiFileClient.retrieveFile(fileId);
+    }
+
+    public byte[] getFileContent(String fileId) {
+        return this.openAiFileClient.retrieveFileContent(fileId);
+    }
+
+    public void processDocument(String vectorStoreId, String fileName, byte[] file) {
+        String fileId = this.uploadFile(fileName, file);
+        this.openAiFileClient.attachFileToVectorStore(vectorStoreId, fileId);
+    }
+
+    public String uploadFile(String fileName, byte[] file) {
+        return this.openAiFileClient.uploadFile(
+                new ByteArrayResource(file) {
+                    @Override
+                    public String getFilename() {
+                        return fileName;
+                    }
+                },
+                Data.File.Purpose.ASSISTANTS
+        ).id();
     }
 
     private Data.Assistant getAssistant(String assistantId) throws ExecutionException {
@@ -118,19 +134,21 @@ public class AssistantService {
                 .orElseThrow(() -> new RuntimeException("Assistant not found")); //todo create AssistantException
     }
 
-    private Data.Assistant createAssistant(String botId) {
+    public Data.Assistant createAssistant(String vectorStoreId, String name, String description, String instructions) {
 
-        Data.Assistant assistant = openAiAssistantClient.createAssistant(new Data.AssistantRequestBody(
-                "gpt-4-1106-preview", // model
-                "Math Tutor", // name
-                "", // description
-                "You are a personal math tutor. Write and run code to answer math questions.", // instructions
-                List.of(new Data.Tool(Data.Tool.Type.file_search)), // tools
-                null,
+        return this.openAiAssistantClient.createAssistant(new Data.AssistantRequestBody(
+                GPT_4_O_MINI,
+                name,
+                description,
+                instructions,
+                List.of(new Data.Tool(Data.Tool.Type.file_search)),
+                new Data.ToolResources(new Data.FileSearch(List.of(vectorStoreId)), null),
                 null
-        )); // metadata
-//        this.assistantRepository.save(AssistantEntity.of(assistant.id(), botId));
-        return assistant;
+        ));
+    }
+
+    public String createVectorStore() {
+        return this.openAiFileClient.createVectorStore().id();
     }
 
     public record RequestData(Long chatId, String botToken) {}

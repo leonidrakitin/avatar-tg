@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -32,7 +34,9 @@ public class TelegramBotEntity {
 
     private final String assistantId;
 
-//    @ManyToOne
-//    @JoinColumn(name = "telegram_user")
-//    private final TelegramUserEntity admin;
+    private final String vectorStoreId;
+
+    @ManyToOne
+    @JoinColumn(name = "telegram_user")
+    private final TelegramUserEntity admin;
 }

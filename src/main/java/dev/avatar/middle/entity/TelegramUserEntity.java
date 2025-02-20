@@ -35,6 +35,8 @@ public class TelegramUserEntity {
 
     private final String selectedLocale;
 
+    private final boolean accessToUpDaily;
+
     public static TelegramUserEntity of(Long chatId, User user) {
         return TelegramUserEntity.builder()
                 .chatId(chatId)

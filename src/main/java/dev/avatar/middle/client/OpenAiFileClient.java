@@ -17,6 +17,16 @@ import java.util.function.Consumer;
 
 public class OpenAiFileClient {
 
+	/**
+	 * OpenAI assistant api beta marker.
+	 */
+	public static final String OPEN_AI_BETA = "OpenAI-Beta";
+
+	/**
+	 * OpenAI assistant api version.
+	 */
+	public static final String ASSISTANTS_V2 = "assistants=v2";
+
 	public static final String DEFAULT_BASE_URL = "https://api.openai.com";
 
 	private final RestClient rest;
@@ -45,6 +55,7 @@ public class OpenAiFileClient {
 		this.multipartContentHeaders = headers -> {
 			headers.setBearerAuth(openAiToken);
 			headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+			headers.set(OPEN_AI_BETA, ASSISTANTS_V2);
 		};
 
 		this.responseErrorHandler = new GlobalResponseErrorHandler();
@@ -65,7 +76,6 @@ public class OpenAiFileClient {
 	 * @return Returns a list of {@link File}s object
 	 */
 	public DataList<File> listFiles(File.Purpose purpose) {
-
 		return this.rest.get()
 				.uri("/v1/files?purpose={purpose}", purpose.getText())
 				.retrieve()
@@ -88,11 +98,9 @@ public class OpenAiFileClient {
 	 * @return The uploaded {@link File} object.
 	 */
 	public File uploadFile(Resource file, File.Purpose purpose) {
-
 		MultiValueMap<String, Object> multipartBody = new LinkedMultiValueMap<>();
 		multipartBody.add("purpose", purpose.getText());
 		multipartBody.add("file", file);
-
 		return this.rest.post()
 				.uri("/v1/files")
 				.headers(this.multipartContentHeaders)
@@ -100,6 +108,51 @@ public class OpenAiFileClient {
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(File.class);
+	}
+
+	public Data.VectorStore createVectorStore() {
+		return this.rest.post()
+				.uri("/v1/vector_stores")
+				.headers(headers -> {
+					headers.setBearerAuth(openAiToken);
+					headers.setContentType(MediaType.APPLICATION_JSON);
+					headers.set(OPEN_AI_BETA, ASSISTANTS_V2);
+				})
+				.retrieve()
+				.onStatus(this.responseErrorHandler)
+				.body(Data.VectorStore.class);
+	}
+
+	public Data.VectorStoreList retrieveVectorStoreFiles(String vectorStoreId, String afterId) {
+		String url = String.format(
+				"/v1/vector_stores/{vectorStoreId}/files%s",
+				afterId == null ? "" : "?after=" + afterId
+		);
+		return this.rest.get()
+				.uri(url, vectorStoreId)
+				.headers(headers -> {
+					headers.setBearerAuth(openAiToken);
+					headers.setContentType(MediaType.APPLICATION_JSON);
+					headers.set(OPEN_AI_BETA, ASSISTANTS_V2);
+				})
+				.headers(this.multipartContentHeaders)
+				.retrieve()
+				.onStatus(this.responseErrorHandler)
+				.body(Data.VectorStoreList.class);
+	}
+
+	public void attachFileToVectorStore(String vectorStoreId, String fileId) {
+
+		this.rest.post()
+				.uri("/v1/vector_stores/{vectorStoreId}/files", vectorStoreId)
+				.headers(headers -> {
+					headers.setBearerAuth(openAiToken);
+					headers.setContentType(MediaType.APPLICATION_JSON);
+					headers.set(OPEN_AI_BETA, ASSISTANTS_V2);
+				})
+				.body(new Data.FileId(fileId))
+				.retrieve()
+				.onStatus(this.responseErrorHandler);
 	}
 
 	/**
@@ -111,6 +164,24 @@ public class OpenAiFileClient {
 	public Data.DeletionStatus deleteFile(String fileId) {
 		return this.rest.delete()
 				.uri("/v1/files/{file_id}", fileId)
+				.retrieve()
+				.onStatus(this.responseErrorHandler)
+				.body(Data.DeletionStatus.class);
+	}
+
+	/**
+	 * Deletes a file by ID in vector store.
+	 *
+	 * @param fileId The ID of the file to use for this request.
+	 * @return Return the file deletion status.
+	 */
+	public Data.DeletionStatus deleteFile(String vectorStoreId, String fileId) {
+		return this.rest.delete()
+				.uri("/v1/vector_stores/{vector_store_id}/files/{file_id}", vectorStoreId, fileId)
+				.headers(headers -> {
+					headers.setBearerAuth(openAiToken);
+					headers.set(OPEN_AI_BETA, ASSISTANTS_V2);
+				})
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(Data.DeletionStatus.class);

@@ -62,6 +62,20 @@ public class Data {
 	}
 
 	/**
+	 * Represents id.
+	 *
+	 * @param id - id.
+	 */
+	public record Id(String id) {}
+
+	/**
+	 * Represents file id.
+	 *
+	 * @param file_id - file id.
+	 */
+	public record FileId(String file_id) {}
+
+	/**
 	 *
 	 * @param file_search
 	 * @param code_interpreter
@@ -228,6 +242,7 @@ public class Data {
 			String instructions,
 			List<Tool> tools,
 			List<String> file_ids,
+			List<ToolResources> tool_resources,
 			Map<String, String> metadata
 	) {
 	}
@@ -266,6 +281,14 @@ public class Data {
 			this(model, null, null, instructions, List.of(), null, null);
 		}
 	}
+
+	public record VectorStore(String id) {}
+
+	public record VectorStoreList(
+			String last_id,
+			boolean has_more,
+			List<Id> data
+	) {}
 
 	/**
 	 * The File object represents a document that has been uploaded to OpenAI.
@@ -444,8 +467,6 @@ public class Data {
 	 * @param content The content of the message in array of text and/or images.
 	 * @param assistant_id If applicable, the ID of the {@link Assistant} that authored this message.
 	 * @param run_id If applicable, the ID of the run associated with the authoring of this message.
-	 * @param file_ids A list of {@link File} IDs that the assistant should use. Useful for tools like retrieval and
-	 * code_interpreter that can access files. A maximum of 10 files can be attached to a message.
 	 * @param metadata Set of 16 key-value pairs that can be attached to an object. This can be useful for storing
 	 * additional information about the object in a structured format. Keys can be a maximum of 64 characters long and
 	 * values can be a maximum of 512 characters long.
@@ -525,8 +546,6 @@ public class Data {
 	 * Message creation request.
 	 *
 	 * @param role The entity that produced the message. One of 'user' or 'assistant'.
-	 * @param file_ids A list of {@link File} IDs that the assistant should use. Useful for tools like retrieval and
-	 * code_interpreter that can access files. A maximum of 10 files can be attached to a message.
 	 * @param metadata Set of 16 key-value pairs that can be attached to an object. This can be useful for storing
 	 * additional information about the object in a structured format. Keys can be a maximum of 64 characters long and
 	 * values can be a maximum of 512 characters long.

@@ -1,5 +1,6 @@
 package dev.avatar.middle.service.telegram.command;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import dev.avatar.middle.model.Bot;
 import dev.avatar.middle.model.TelegramBotType;
 
@@ -8,7 +9,7 @@ public interface TelegramCommand {
     TelegramBotType getBotType();
     String getDescription();
     String getCommand();
-    void processCommand(Bot telegramBot, Long chatId);
+    void processCommand(Bot telegramBot, Long chatId) throws JsonProcessingException;
 }
 
 /**
