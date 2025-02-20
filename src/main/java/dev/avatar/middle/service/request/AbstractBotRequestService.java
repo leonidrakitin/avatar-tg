@@ -56,7 +56,7 @@ abstract public class AbstractBotRequestService {
                 handleCallbackQuery(bot.getExecutableBot(), update.callbackQuery());
             } else if (update.message() != null) {
                 handleMessageUpdate(bot, update.message());
-            } else {
+            } else if (update.message() != null && update.message().chat() != null && update.message().chat().id() != null) {
                 bot.getExecutableBot().execute(new SendMessage(
                         update.message().chat().id(),
                         "I am sorry, I can not process your message :(")

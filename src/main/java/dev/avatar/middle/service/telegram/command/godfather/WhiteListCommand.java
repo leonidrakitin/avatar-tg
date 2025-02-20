@@ -65,6 +65,8 @@ public class WhiteListCommand implements TelegramCommand {
 
         InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
         this.telegramUserRepository.findByAccessToUpDaily(true)
+                .stream()
+                .distinct()
                 .forEach(user -> {
                     try {
                         keyboardMarkup.addRow(new InlineKeyboardButton(

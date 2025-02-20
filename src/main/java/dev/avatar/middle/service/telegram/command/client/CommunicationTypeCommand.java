@@ -63,7 +63,7 @@ public class CommunicationTypeCommand implements TelegramCommand {
                 .id(UUID.randomUUID())
                 .botTokenId(telegramBot.getToken())
                 .callbackMessageId(response.message().messageId())
-                .callbackType(CallbackType.LANGUAGE)
+                .callbackType(CallbackType.COMMUNICATION_TYPE_CALLBACK)
                 .build();
         this.callbackBotRepository.save(callbackBotEntity);
     }
