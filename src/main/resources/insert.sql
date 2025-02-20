@@ -1,3 +1,7 @@
+INSERT INTO public.telegram_user (access_to_up_daily, chat_id, telegram_user_id, default_locale, first_name, last_name, selected_locale, username) VALUES (true, 283963399, 283963399, 'ru', 'Дмитрий', null, 'ru', 'Tothem');
+INSERT INTO public.telegram_user (access_to_up_daily, chat_id, telegram_user_id, default_locale, first_name, last_name, selected_locale, username) VALUES (true, 1058980949, 1058980949, 'ru', 'Леонид', null, 'ru', 'test');
+INSERT INTO public.telegram_user (access_to_up_daily, chat_id, telegram_user_id, default_locale, first_name, last_name, selected_locale, username) VALUES (true, 3123123, 3123123, 'ru', 'Леонид', null, 'ru', 'test');
+
 INSERT INTO public.telegram_bot (telegram_user, assistant_id, bot_token_id, bot_type, name, vector_store_id) VALUES (1058980949, 'asst_4u2rJPsHU9dJp3UdjEo1At0X', '7644505811:AAF0LJ2a7wMjXb72lGwA04lk6rirc-hmYQY', 'GODFATHER_BOT', 'UpDaily Platform', 'vs_67b7399b2504819181695b0001852baa');
 INSERT INTO public.telegram_bot (telegram_user, assistant_id, bot_token_id, bot_type, name, vector_store_id) VALUES (1058980949, 'asst_4u2rJPsHU9dJp3UdjEo1At0X', '6477484573:AAETV3wt5c7KTYLywleaVM2LrTbOb6lwWWU', 'CLIENT_BOT', 'Just test', 'vs_67b7399b2504819181695b0001852baa');
 INSERT INTO public.telegram_bot (telegram_user, assistant_id, bot_token_id, bot_type, name, vector_store_id) VALUES (1058980949, 'asst_4u2rJPsHU9dJp3UdjEo1At0X', '7616072522:AAHOhyrpvZsvPWcrn8nnkGxCJ1rduTqeXA8', 'CLIENT_BOT', 'UpDaily Demo Example', 'vs_nBKshcDQFWNMpwWcxRwFj3yf');
